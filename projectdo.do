@@ -52,6 +52,10 @@
 
     if `"`c(username)'"' == "aljosephson" {
         global 		project  	"C:/Users/aljosephson/git/lsms-isa_processed_dataset"
+		
+		* tell Stata where to find the relevant programs
+		whereis pdflatex 		"C:\Program Files\MiKTeX 2.9\miktex\bin\x64\pdflatex.exe"
+		whereis pandoc 			"C:/Program Files/Pandoc/pandoc.exe"
     }
 
     if `"`c(username)'"' == "emilk" {	
@@ -61,7 +65,6 @@
 		whereis pdflatex 		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
 		whereis pandoc 			"C:/Users/emilk/AppData/Local/Pandoc/pandoc.exe"
     }
-
 	
 * **********************************************************************
 * 0 (b) - set up local folder structure
