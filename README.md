@@ -18,7 +18,17 @@ In the repository click "code" and select either "Clone", "Open with Github Desk
 
 ## 4. Set up workspace
 
-Access the repository where ever your placed it on your local maching and open the `project.do` file. This file creates a folder structure that is identical across users so that all code will run on any machine where it is installed. Before running the code for the first time, ensure `dirCreate` and `pack` are set to 0. This will ensure Stata creates the necessary folders and installs all necessary user written Stata packages. Also, ensure that the global `project` is set to the location in which you installed the git repository.
+Access the repository where ever your placed it on your local maching and open the `project.do` file. This file creates a folder structure that is identical across users so that all code will run on any machine where it is installed. Before running the code for the first time, ensure `dirCreate` and `pack` are set to 0.
+
+```{s}
+* set $dirCreate to 0 to skip directory creation
+	global			dirCreate	1
+
+* set $pack to 0 to skip package installation
+	global			pack		1
+```	
+
+This will ensure Stata creates the necessary folders and installs all necessary user written Stata packages. Also, ensure that the global `project` is set to the location in which you installed the git repository.
 
 ## 5. Download the data from the world bank website.
 
