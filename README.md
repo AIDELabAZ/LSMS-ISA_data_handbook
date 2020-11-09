@@ -10,7 +10,7 @@ The variable guides that we have made available on the github repository work in
 
 ## 1. Download a copy of the code by cloning the github repository
 
-In the repository click "code" and select either "Clone", "Open with Github Desktop", or "Download ZIP". Clone or unzip the repository in a directory of your choice.
+In the repository click "code" and select either **`CloneClone`, `Open with Github Desktop`, or `Download ZIP`**. Clone or unzip the repository in a directory of your choice.
 
 ## 2. Install pandoc and pdflatex
 
