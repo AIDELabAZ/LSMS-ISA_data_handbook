@@ -32,8 +32,8 @@ This will ensure Stata creates the necessary folders and installs all necessary 
 
 ```{s}
 * define root folder globals
-	if `"`c(username)'"' == "username" {
-		global		project		"C:/Users/username/git/lsms-isa_processed_dataset"
+	if `"`c(username)'"' == "`username`" {
+		global		project		"C:/Users/`username`/git/lsms-isa_processed_dataset"
 		
 		* tell Stata where to find the relevant programs
 		whereis pdflatex		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
