@@ -54,7 +54,7 @@
         global 		project  	"C:/Users/aljosephson/git/lsms-isa_processed_dataset"
 		
 		* tell Stata where to find the relevant programs
-		whereis pdflatex 		"C:\Program Files\MiKTeX 2.9\miktex\bin\x64\pdflatex.exe"
+		whereis pdflatex 		"C:/Program Files/MiKTeX 2.9/miktex/bin/x64/pdflatex.exe"
 		whereis pandoc 			"C:/Program Files/Pandoc/pandoc.exe"
     }
 
