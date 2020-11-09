@@ -30,6 +30,17 @@ Access the repository where ever your placed it on your local maching and open t
 
 This will ensure Stata creates the necessary folders and installs all necessary user written Stata packages. Also, ensure that the global `project` is set to the location in which you installed the git repository.
 
+```{s}
+* define root folder globals
+	if `"`c(username)'"' == "username" {
+		global		project		"C:/Users/username/git/lsms-isa_processed_dataset"
+		
+		* tell Stata where to find the relevant programs
+		whereis pdflatex		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
+		whereis pandoc			"C:/Program Files/Pandoc/pandoc.exe"
+    }
+```
+ 
 ## 5. Download the data from the world bank website.
 
 To access the data from the World Bank website go the Central data catalog on the world bank website, then find the "filter by collection on the left hand side of the webpage" and select checkbox for the Living Standards Measurement Survey (LSMS) filter. LSMS surveys are catergorized alphabetically by country names and then chronologically by the year and wave of the survey. Browse the pages until you find the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013, select that. Under the heading there are four tabs called STUDY DESCRIPTION, DOCUMENTATION, DATA DESCRIPTION, and GET MICRODATA, click on the GET MICRODATA tab. You will be asked to log in with World Bank user profile, which if you do not already have a profile you will be redirected to creat one, follow the instructions to create a profile and then repeat the steps to find the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria. If you already have a profile you will be redirected to a form submission page where you must write in the box provided a brief description of the research project that will use the data, which once you have submitted you will be redirected to the data files that are available for download in SPSS, CSV, and STATA formats. To follow this guide select the STATA format. Once the download is complete open the compressed zip file "NGA_2012_GHSP-W2_v02_M_STATA".
