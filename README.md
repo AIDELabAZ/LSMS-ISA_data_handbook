@@ -56,6 +56,6 @@ Access the data from the [World Bank LSMS-ISA website](https://www.worldbank.org
 
 For the handbook we use the [General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013](https://microdata.worldbank.org/index.php/catalog/1952). Follow the World Bank instructions to download the data from the microdata library. To follow this guide select the Stata format. Once the download is complete, unzip the data file into  `C:\Users\{username}\git\lsms-isa_processed_dataset\data\nigeria\wave_2\raw`, or whatever user directory you selected.
 
-Go into the post harvest wave 2 file, then agriculture file, then copy all stata datasets and paste them in the nigeria wave 2 raw data folder that was created by the project do, and the path is "C:\Users\emilk\git\lsms-isa_processed_dataset\data\nigeria\wave_2\raw".
+## 5. Build the handbook
 
-Open "NGA_2012_GHSP-W2_v02_M_STATA" again and open post planting wave 2, agriculture, and then copy all the stata datasets and paste them in the nigeria wave 2 raw data folder that was created by the project do, and the path is "C:\Users\emilk\git\lsms-isa_processed_dataset\data\nigeria\wave_2\raw".
+to do...
