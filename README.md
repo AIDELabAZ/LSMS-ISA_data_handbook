@@ -1,8 +1,8 @@
 # LSMS-ISA Dataset Construction Handbook
 
-The Living Standards Measurement Study - Integrated Surveys on Agriculture (LSMS-ISA) project is an initiative, funded by the Bill & Melinda Gates Foundation (BMGF), led by the Living Standards Measurement Study (LSMS) within the Development Economics Data Group (DECDG) at the World Bank. Under the LSMS-ISA initiative, the World Bank supports governments in seven Sub-Saharan African countries to generate household panel data with a strong focus on agriculture and modeled on the integrated household survey design of the Living Standards Measurement Study. In addition to the goal of producing policy-relevant agricultural data, the LSMS-ISA supports the design and validation of innovative survey methods, the use of technology for improving survey data quality, and the development of analytical tools to facilitate the use and analysis of the data collected.
+The Living Standards Measurement Study - Integrated Surveys on Agriculture (LSMS-ISA) project is an initiative, funded by the Bill & Melinda Gates Foundation (BMGF), led by the Living Standards Measurement Study (LSMS) within the Development Economics Data Group (DECDG) at the World Bank. Under the LSMS-ISA initiative, the World Bank supports governments in seven Sub-Saharan African countries to generate household panel data with a strong focus on agriculture and modeled on the integrated household survey design of the Living Standards Measurement Study.
 
-This repository provides curated Stata code and documentation to allow users to process the publicly-available LSMS-ISA-supported survey rounds in order to contruct harmonized datasets ready for analysis.
+This repository provides curated Stata code and documentation to introduce users on how to process the publicly-available LSMS-ISA-supported survey rounds in order to contruct harmonized datasets ready for analysis. The **LSMS-ISA Data Handbook** is constructed using dynamic documents in Stata. The Microsoft Word versions of these documents are directly available in this repository. However, the repo is designed in such a way as to allow the user to download the repo (and any other necessary programs), and create the documents themself. This allows the user to follow along in the code and dynamically adapt the document to explore the data and code.
 
 # Setting Up the Dev Environment with Github
 
@@ -21,8 +21,8 @@ To create the handbook on your own computer, you need to have pandoc and pdflate
 
 Once these two programs are installed, find out where there are.
 
- + On Windows: type `where pdflatex` and `where pandoc` on the command line
- + On Mac or Linux: open `terminal` and type `which pdflatex` and `which pandoc`
+- On Windows: type `where pdflatex` and `where pandoc` on the command line
+- On Mac or Linux: open `terminal` and type `which pdflatex` and `which pandoc`
 
 ## 3. Set up workspace
 
