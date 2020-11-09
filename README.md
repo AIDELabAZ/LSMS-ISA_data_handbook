@@ -8,7 +8,7 @@ This repository provides curated Stata code and documentation to allow users to 
 
 The variable guides that we have made available on the github repository work in a github and local environment which we must first set up. This involves cloning the git repository where the code guides live on your local. 
 
-1. Download a copy of the code by cloning the github repository
+## 1. Download a copy of the code by cloning the github repository
 
 Click "code" above the files listed in the repository and select "Open with Github Desktop". Allow Github to open if you are prompted to do so. An option window called clone a repository will come up. Click the URL tab if you are not on the URL tab. In the URL tab there are two bars, the first bar has the Repository URL or github username and repository, and the second tab has the local path that the repository will be copied to, there is a default local path but if there is another path you would prefer, and its up to you, you can click "choose" next to the local path window and set your own path. Once you have chosen you path you can click clone.
 
