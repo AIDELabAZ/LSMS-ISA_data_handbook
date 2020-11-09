@@ -26,7 +26,7 @@ Once these two programs are installed, find out where there are.
 
 ## 3. Set up workspace
 
-Access the repository where ever your placed it on your local maching and open the `project.do` file. This file creates a folder structure that is identical across users so that all code will run on any machine where it is installed. Before running the code for the first time, ensure `dirCreate` and `pack` are set to 1.
+Access the repository where ever your placed it on your local maching and open the `project.do` file. This file creates a folder structure that is identical across users so that all code will run on any machine where it is installed. Before running the code for the first time, ensure `dirCreate` and `pack` are set to 1 and `document` set to 0.
 
 ```{s}
 * set $dirCreate to 0 to skip directory creation
@@ -34,6 +34,9 @@ Access the repository where ever your placed it on your local maching and open t
 
 * set $pack to 0 to skip package installation
 	global			pack		1
+	
+* set $document to 0 to skip building handbook
+	global			document	0
 ```	
 
 This will ensure Stata creates the necessary folders and installs all necessary user written Stata packages. Next, ensure that the global `project` is set to the location in which you installed the git repository. If you installed the repo in git's default location, this simply requires changing `{username}` to your computer's username.
@@ -58,4 +61,17 @@ For the handbook we use the [General Household Survey, Panel 2012-2013, Wave 2 f
 
 ## 5. Build the handbook
 
-to do...
+Go back to the `project.do` file. Before running this code, ensure `dirCreate` and `pack` are set to 0 but `document` is set to 1.
+
+```{s}
+* set $dirCreate to 0 to skip directory creation
+	global			dirCreate	0
+
+* set $pack to 0 to skip package installation
+	global			pack		0
+	
+* set $document to 0 to skip building handbook
+	global			document	1
+```	
+
+This should compile the handbook??
