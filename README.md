@@ -32,7 +32,7 @@ This will ensure Stata creates the necessary folders and installs all necessary 
 
 ```{s}
 * define root folder globals
-	if `"`c(username)'"' == "{username{" {
+	if `"`c(username)'"' == "{username}" {
 		global		project		"C:/Users/{username}/git/lsms-isa_data_handbook"
 		
 		* tell Stata where to find the relevant programs
