@@ -14,9 +14,15 @@ In the repository click "code" and select either "Clone", "Open with Github Desk
 
 ## 2. Install pandoc and pdflatex
 
-To create the handbook on your own computer, you need to have pandoc and pdflatex install on your machines. 
- 1. [pandoc](https://pandoc.org/installing.html)
- 1. [TeX/LaTeX](https://miktex.org/download)
+To create the handbook on your own computer, you need to have pandoc and pdflatex install on your machine.
+
+- [pandoc](https://pandoc.org/installing.html)
+- [TeX/LaTeX](https://miktex.org/download)
+
+Once these two programs are installed, find out where there are.
+
+ + On Windows: type `where pdflatex` and `where pandoc` on the command line
+ + On Mac or Linux: open `terminal` and type `which pdflatex` and `which pandoc`
 
 ## 3. Set up workspace
 
