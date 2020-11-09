@@ -1,4 +1,4 @@
-# LSMS-ISA Processed Dataset Construction and Documentation
+# LSMS-ISA Dataset Construction Handbook
 
 The Living Standards Measurement Study - Integrated Surveys on Agriculture (LSMS-ISA) project is an initiative, funded by the Bill & Melinda Gates Foundation (BMGF), led by the Living Standards Measurement Study (LSMS) within the Development Economics Data Group (DECDG) at the World Bank. Under the LSMS-ISA initiative, the World Bank supports governments in seven Sub-Saharan African countries to generate household panel data with a strong focus on agriculture and modeled on the integrated household survey design of the Living Standards Measurement Study. In addition to the goal of producing policy-relevant agricultural data, the LSMS-ISA supports the design and validation of innovative survey methods, the use of technology for improving survey data quality, and the development of analytical tools to facilitate the use and analysis of the data collected.
 
