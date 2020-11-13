@@ -1,0 +1,179 @@
+% statamarkdown intro
+% emil keetui 
+% `s c(current_date)`
+
+# Generating Planting Labor in Nigeria General Household Survey, Panel 2012-2013, Wave 2
+
+The labor data in the Nigeria General Household Survey, Panel 2012-2013, Wave 2 consists of planting labor and post planting labor. The planting labor data was collected during the survey administered in the planting season. The survey did not ask respondents to specify the exact tasks that labor were performing. The labor in this data set is assumed to be for all tasks that take place during the planting season such as weeding, land preperation, and planting. The data was gathered at the plot level. We will produce a variable that is the sum of all family labor, hired labor and exchanged labor employed on a plot for the planting season.
+
+Open the planting labor dataset "sect11c1_plantingw2.dta".
+
+```{s}
+use "C:/Users/emilk/git/lsms-isa_data_handbook/data/nigeria/wave_2/raw/sect11c1_plantingw2.dta", clear
+	
+```
+
+The variables are numbered with relation to the order of the questions in the survey. It is not possible to know what the variable refers to without looking at the label. `Describe` outputs all variables' labels. Take a look first at the variables in the data set to decide what you will use from this file.
+
+```{s}
+
+	describe
+```
+
+Check the claim we made at the start that the data is organized by household and then plot. Is each observation a unique plot in a unique household? Verify this using `isid`. If the data can be identified in that way then `isid` will not return an output.
+
+```{s}
+	sort			hhid plotid
+	isid			hhid plotid
+```
+
+
+Per Palacios-Lopez et al. (2017) in Food Policy, we cap labor days per activity in the following ways:
+
+ 7 days * 13 weeks = 91 days for land preperation and planting
+ 7 days * 26 weeks = 182 days for weeding and other non-harvest activities
+ 7 days * 13 weeks = 91 days for harvesting
+
+We take these caps to be the expected normal upper bound for labor use in the Nigeria. And deviations outside the boundary are considered to be too high and a possible error of recall. When they exceed their caps we will replace them with missing a missing value and impute them, more said about that later at the imputation stage.
+
+We will also exclude child labor days. And note that we we can't tell gender or age of household members so that variable will be genderless, not that that matters because the final variable is a sum of all labor per plot.
+
+# Household Labor
+
+Up to four household member's labor is given for each plot. We want to summarize the total days worked in the planting season by multiplying the days they worked per week by the weeks they worked per year. 
+
+```{s}
+	gen				hh_1 = (s11c1q1a2 * s11c1q1a3)
+```
+Plots that did not have family labor will return a missing value, replace those missing values with a 0.
+
+```{s}
+	replace			hh_1 = 0 if hh_1 == .
+```
+
+
+```{s}
+	gen				hh_2 = (s11c1q1b2 * s11c1q1b3)
+	replace			hh_2 = 0 if hh_2 == .
+	
+	gen				hh_3 = (s11c1q1c2 * s11c1q1c3)
+	replace			hh_3 = 0 if hh_3 == .
+	
+	gen				hh_4 = (s11c1q1d2 * s11c1q1d3)
+	replace			hh_4 = 0 if hh_4 == .
+```
+
+# Hired Labor
+
+Hired labor is given for men and women. Hired labor does not have weeks worked and only has days worked on the plot. Make a seperate variable for hired men days and hired women days. We have chosen to exclude child days from the final calculation.
+
+```{s}
+	gen				men_days = s11c1q3
+	replace			men_days = 0 if men_days == .
+	
+	gen				women_days = s11c1q6
+	replace			women_days = 0 if women_days == .
+```
+
+# Impute labor outliers
+	
+Summarize the labor measures and compare them to the caps we set out at the start.
+
+```{s}
+
+	sum				hh_1 hh_2 hh_3 hh_4 men_days women_days
+```
+
+All except "women_days" has more labor days than what we consider possible.
+
+We are going to change the outliers to missing. Use a loop to identify and then change outliers.
+	
+Create a local for the labor variables that contain outliers
+
+```{s}
+
+	loc				labor hh_1 hh_2 hh_3 hh_4 men_days
+```
+
+Replace zero to missing, missing to zero, and outliers to missing. 
+
+The cap is the sum of all non-harvest days, that is according to Palacios-Lopez et al. (2017) 91 days for land preperation and planting + 182 days for weeding and other non-harvest activities = 273.
+
+```{s}
+	foreach var of loc labor {
+	    replace			`var' = . if `var' > 273
+	}
+```
+We change 1,458 outliers changed to missing. These are now imputed.
+
+Imputation replaces missing data with an estimate of the missing data which we obtained by estimating the existing data. We use a specific technique of Predictive Mean Matching technique (PMM). We set out the steps taken in pmm imputation to provide context for the impute commands in Stata. 
+
+In summary, the variable with the missing variables is taken as a dependent variable in a least squares regression. The estimate is matched to 5 non-missing observations in the dependent variable that have values wihtin a certain distance of the estimate. Randomly one of the 5 close observations are chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more detail in practice on imputation to simulate missing data.
+
+`Mi` (multiple imputation) is the Stata command for imputing. Set the data structure as wide or long. Our data is wide because a unique observation is identified by a unique row.
+
+```{s}
+
+	mi set 			wide 
+```	
+	
+Clear any time series settings you may have in place or else the time series will interfere with the linear regression we run later.
+
+```{s}
+
+	mi xtset		, clear 	
+```
+
+We will use the local we made a little earlier because we need to impute 5 variables and run a loop. In the first line of the loop `foreach var of loc labor` apply the loop to each variable in the local called labor.
+
+For each variable we have to register the one being imputed, then we sort that variable to make the results reproducible, and finally impute. 
+
+Impute with the labor variables as the dependent variables and state, the variable for the geographic state location of the observation, as the independent variable.
+
+```{s}
+	foreach var of loc labor {
+		mi register			imputed `var'
+		sort				hhid plotid, stable
+		mi impute 			pmm `var' i.state, add(1) rseed(245780) noisily dots force knn(5) bootstrap
+	}	
+```
+The imputing should be over so we unset it.
+
+```{s}
+	mi 				unset	
+```
+	
+Inspect the results of the imputation. Imputed variables are named by adding an _# to the name of the original variable. Every time the loop ran a variable with the imputation name structure was generated but it does not contain imputations. The variables that contain impuation are numbered according to the order they appear in the local. 
+
+```{s}
+	sum				hh_1_1_ hh_2_2_ hh_3_3_ hh_4_4_ men_days_5_
+```
+
+Look at the imputed variables. Are they within the boundary caps we set? 
+
+We find they are, but you should confirm that yourself.
+
+Make the planting period labor variable by adding together the labor of all the household members, the hired men, and the hired women days.
+
+```{s}
+	egen			pp_labor = rowtotal(hh_1_1_ hh_2_2_ hh_3_3_ ///
+						hh_4_4_ men_days_5_ women_days)
+	lab var			pp_labor "total labor for planting (days)"
+```
+Check missing observations. And replace them with 0 if they are supposed to be zero, or the correct non-zero if labor was used on that plot.
+
+```{s}
+count if pp_labor == .
+```
+
+Lastly before saving generate a plot id to identify each plot in the data. Since the data is organized by household id and then plot id we should combine those to make a unique id variable.
+
+```{s}
+	sort			hhid plotid
+	egen			plot_id = group(hhid plotid)
+	lab var			plot_id "unique plot identifier"
+```
+	
+```{s}
+	save "$root/wave_2/refined/pp_sect11c1.dta", replace	
+```

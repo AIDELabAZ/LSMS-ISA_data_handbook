@@ -2,471 +2,295 @@
 % emil keetui 
 % `s c(current_date)`
 
-# Generating Maize Yield (kg/ha) in Nigeria General Household Survey, Panel 2012-2013, Wave 2
+# Generating Plotsize (ha) in Nigeria General Household Survey, Panel 2012-2013, Wave 2
 
-This is a guide to generating the maize yield variable (kilograms of maize per hectare) from the Nigeria General Household Survey, Panel 2012-2013, Wave 2 (Survey ID Number: NGA_2012_GHSP-W2_v02_M). The basic steps we take here are the same steps you could take to generate yield variables in other waves and for other crops. This guide includes the stata commands and the stata output but following the steps on your own is helpful. To use the same files we use in this guide download the Nigeria General Household Survey, Panel 2012-2013, Wave 2 (Survey ID Number: NGA_2012_GHSP-W2_v02_M) from the World Bank website's Central Data catalog - instructions are given below on how to find and download the files from the World Bank website.
+This chapter is a guide to generating a data set for plot sizes in hectares. Plot sizes were measured with a handheld GPS and farmers were asked to recall the size of their plot. The GPS is more accurate than the self reported but we will keep both measures. The GPS measure was taken in meters, it is straightforward to convert to hectares. The self reported plot sizes are reported in multiple units you may or not recognize. Those can be converted straightforwardly with the conversion file. 
 
-# Instructions on Downloading the Data from the World Bank Website
-
-To access the data from the World Bank website go the Central data catalog on the world bank website, then find the "filter by collection on the left hand side of the webpage" and select checkbox for the Living Standards Measurement Survey (LSMS) filter. LSMS surveys are catergorized alphabetically by country names and then chronologically by the year and wave of the survey. Browse the pages until you find the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013, select that. Under the heading there are four tabs called STUDY DESCRIPTION, DOCUMENTATION, DATA DESCRIPTION, and GET MICRODATA, click on the GET MICRODATA tab. You will be asked to log in with World Bank user profile, which if you do not already have a profile you will be redirected to creat one, follow the instructions to create a profile and then repeat the steps to find the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria. If you already have a profile you will be redirected to a form submission page where you must write in the box provided a brief description of the research project that will use the data, which once you have submitted you will be redirected to the data files that are available for download in SPSS, CSV, and STATA formats. To follow this guide select the STATA format. Once the download is complete open the compressed zip file "NGA_2012_GHSP-W2_v02_M_STATA", and navigate to Post Harvest Wave 2, Agriculture, and select the file sect3a_harvestw2.dta. Keep the raw data files and the cleaned data files separate so it is a good idea to duplicate sect3a_harvestw2 in another folder where you will work on it from there, this way you can always refer to the original raw data file in the original NGA_2012_GHSP-W2_v02_M_STATA file if you need to. The path we save the raw data is: "G:\My Drive\lsms_data_product\data demonstration\Nigeria\wave_1\raw data\, you should use a file convention that suits you.
-
-
-
-To get started tell Stata to "use" the file "secta3_harvestw2.dta" and include the location of where the to find the file on your computer. Ours is kept on the Google drive in a series of folders within folders starting with "lsms_data_product" and ending with "raw data". Add a comma and then a "clear", this clears any data already in stata.
+Use the file "sect11a1_plantingw2.dta" from the raw data location or if you have stored the raw data somewhere else.
 
 ```{s}
-
-use "$root/wave_2/raw/secta3_harvestw2.dta", clear 
-
+use "C:/Users/emilk/git/lsms-isa_data_handbook/data/nigeria/wave_2/raw/sect11a1_plantingw2.dta", clear
 ```
 
-This data was collected after the main harvest and is at the crop level, meaning respondents were asked questions about each crop they planted, such as how much they harvested, if it was sold and how much it was worth, the plot it was grown on, etc. In Stata you can see data by going to the tool bar and selecting Data,Data Editor, and Data Editor (Browse). Browse shows you the data in a spread sheet, each column is a variable and each row is a crop because our data is at the crop level. Exit the Browser and go to the box where you type in commands, or the command line. Look at what kind of crops by asking stata to *tabulate* ***cropcode***. 
+We want to `describe` the data which will show the variables and the distribution of the data.
 
 ```{s}
-tabulate cropcode
-```
-
-Note that the names of the crops are displayed as words in the output table but they are stored as integers in the data. Maize is encoded as 1080 in ***cropcode***.
-
-Restrict our observations to a single harvest season. Although this data was collected after the main harvest some households might not have harvested when the enumerators conducted their surveys, so remove those households from the sample that did not harvest because it was not harvest season or they delayed their harvest and will harvest in another season. But keep the households that did not harvest because their crop failed for one reason or another. We can identify households that did not harvest this season for a reason besides crop failure using ***sa3q3*** which records the response to the question "Have you harvested any of the following crops since the last interview?" The variable is coded to be matched to the survey instrument if you want to see how the question was actually given to respondents. But to make the variable clearer for ourselves rename ***sa3q3** to ***harvest***:
-
-```{s}
-	rename sa3q3 harvest
-```
-
-Note, ***sa3q4*** records the reason that a household failed to harvest. Use the *tabulate* command for stata to list the reasons households failed to harvest.
-
-```{s}
-	tab sa3q4
-```
-
-Stata displays the reasons for failing to harvest as whole sentences in the output but each reason is stored in the data as integers and when we write code we have to use the integer. Find the integer code of a response using the data browser and find ***sa3q4*** and then select cells. The cells still appear to show words for each reason but select a cell and notice that the text bar above the cell matrix displays an integer - this integer is what we write in our code. Command Stata to "sort sa3q4" to put the responses in ascending order so its easier to find the response you are looking for.
-
-```{s}
-	sort sa3q4
-```
-
-Identify the integer code for not harvesting because it was "not harvest season", "delayed harvest" and "other specify". 
-
-Drop observations if they did not harvest because it was not harvest season, the harvest was delayed, and other non-specified reasons which should be encoded as 9, 10, and 11 respectively. We can combine these qualifiers into a single command using an "or" statement, note that stata reads the vertical line symbol “|” as an “or” statement.
-
-```{s}
-	drop if 		sa3q4 == 9 | sa3q4 == 10 | sa3q4 == 11
-```
-	
-The remaining households that did not harvest may have a missing harvest quantity and value. Make sure the remaining households that did not harvest have a 0 for the quantity and value of their harvest. Quantity is ***sa3q6a1*** and value is ***sa3q18***.
-
-```{s}
-	replace			sa3q6a1 = 0 if sa3q6a1 == . & sa3q4 < 9
-	replace			sa3q18  = 0 if sa3q18  == . & sa3q4 < 9
-```
-
-Many respondents in all three waves of the Nigeria survey gave the weights of their harvests in local units and not in standardized units. We ultimately want to produce a variable that is the maize yield measured in kilograms of maize per hectare and we will need to convert the non-standard units into kilograms. Rename ***sa3q6a2*** to ***nscode***. Note that harvest units have been encoded just like the reason for not harvesting variable.
-
-```{s}
-	rename 			sa3q6a2 nscode
-```
-
-# Converting harvest weights to Kilograms
-
-We will convert non-standard units into kilograms by merging the current dataset with harvconv_wave_2.dta which contains a numerical conversion factor to convert each crop and non-standard measurement to the equivalent measurement in kilograms. The non-standard units are a challenge to convert because some of the units are measured by volume such wheelbarrows and sacks. Sacks and wheelbarrows are not standard volumes either and they vary by the brand of the sack or wheelbarrow and possibly by region and the weight of a wheelbarrow of melons is not the same as the weight of a wheelbarrow of maize and conversion will be approximate and not perfect. 
-Before merging keep in mind all crops of the same type when measured with the same units will share the same conversion factor and in data science matching more than one oberservation from the main dataset to one observation in the merging dataset is called a many to one merge. Keep ph_secta3.dta open and merge harvconv_wave_2.dta on ***cropcode*** and ***nscode*** and specify the type of merge as many to one (m:1).
-
-```{s}
- merge 			m:1 cropcode nscode using "$root/wave_2/raw/w2agnsconversion.dta"
-```
-
-After a merge command Stata automatically produces a variable called ***_merge*** that it is encoded as ***_merge***==3 if an observation from the "master" (the main file secta3_harvestw2.dga) was matched to an observation from the "using" (the conversion file). ***_merge***==1 if an observation from the master file was unable to be matched to an observation in the using, this means a crop is measured by a unit we do not have a conversion for. And ***_merge***==2 if an observation from the using file was not matched to the master, this means the using file contained a crop and a unit of measurement that is not present in the main data so we don't need it. Drop the observations we don't need.
-
-```{s}
-	drop if			_merge == 2
-```
-
-Lets address the observations that are missing a conversion. A likely culprit for an unmatched observation is a missing ***nscode*** or ***cropcode***. Check for missing ***nscode*** by asking stata to count the observations with missing ***nscode***(==.) and a ***_merge***==1.
-
-```{s}
-	count if 		nscode==. & _merge == 1
-```
-
-Drop those observations that are missing a ***nscode*** because we can't convert those observations without the unit.
-
-```{s}
-	drop if 		nscode == . & _merge == 1
-```
-
-An observation can go unmatched if the conversion file did not have a conversion for a unit in the master. Tabulate ***nscode*** for the unmatched observations to check what was omitted.
-
-```{s}
-	tab 			nscode if _merge == 1
-```
-
-If an umatched observation is already in kilograms, or grams or a unit you know how to convert to kiligrams then we can keep those observations. We need to replace the ***conversion*** those observations with the conversion factor. For example replace the missing conversion for kilograms to 1. ***nscode*** is encoded and we must sort the data on ***nscode*** and look up the code for kilograms in the data browser. Kilograms are encoded 1. 
-
-```{s}
-	replace			conversion = 1 if conversion == . & nscode==1
-```
-
-We drop an observation if the harvest unit cannot be converted. Note in Stata “!=” is equivalent to the statement “not equal to”.
-
-```{s}
-	drop if			_merge == 1 & nscode != 1
-```
-
-We can now drop the ***_merge*** variable.
-
-```{s}
-	drop 			_merge
-```
-
-Check for missing ***conversion***.
-
-```{s}
-	count if		conversion == .
-```
-	
-Generate ***harv_kg*** that is harvest weights in kilograms by multiplying the conversion factors with the nonstandard weights.
-
-```{s}
-	generate			harv_kg = sa3q6a1*conversion
-```
-	
-Several types of maize varieties were grown and we want to make it easier by recoding them all as one type of maize. Sort ***cropcode*** with the command "sort ***cropcode***" and then look in the data browser to find the codes for the different types of maize. Note that all types of maize are encoded between 1080 and 1084 and generic maize is 1080. Replace all maize with 1080.
-
-```{s}
-	replace			cropcode = 1080 if cropcode > 1079 & cropcode < 1084
-```
-
-Make a maize harvest variable called ***mz_hrv*** for all the maize crop weights. All non-maize observations will be missing in the variable ***mz_hrv***.
-
-```{s}
-	gen 			mz_hrv = harv_kg 	if 	cropcode == 1080
-	lab var			mz_hrv "Quantity of maize harvested (kg)"
-```
-Make a binary variable ***mz_damaged*** to identify a maize crop that experienced crop failure or substantial damage and have ***mz_hrv***==0. 
-
-```{s}
-	gen			mz_damaged = 1	if  cropcode == 1080  & mz_hrv == 0
-	replace 			mz_damaged = 0 	if mz_hrv > 0
-```
-
-# Imputing far outliers
-
-"Summarize" command, or "sum" for short, will tell us the mean, maximum, minimum and other key statistics on a numerical variable. Summarize ***mz_hrv*** and note the distribution of the data and the maximum values. 
-
-```{s}
-	sum				mz_hrv, detail
-```
-
-Compare the summary statistics to reliable crop yield data from the area of study and determine if our data appears at first glance to be reasonable in the context of the region we are studying. 
-
-
-You may use your discretion in choosing how to identify outliers and be consistent to your identification throughout your data cleaning process. We consider an outlier to be an observation that is 3 standard deviations above the mean. The stata code for 3 standard deviations above the mean is `r(p50)' + (3*`r(sd)') where `r(p50)' is the mean and `r(sd)' is the standard deviation and 3*`r(sd)' is 3 times the standard deviation. Replace observersations that are outside of the 3 standard deviations as missing because they are more likely to be errors of recall or recording.
-
-```{s}
-replace			mz_hrv = .  	if 	mz_hrv > `r(p50)' + (3*`r(sd)')
-```
-
-We want to replace the now missing values using imputation which is simulating data using the behavior of the rest of the data. See Kilic, et al 2017 for background on using imputation to simulate missing data. Impute the missing maize harvest values using Predictive Mean Matching technique (PMM). We set out the steps taken in pmm imputation to provide context for the impute commands in Stata. 
-
-In summary firstly least squares estimates multiple estimates of the dependent variable on variables we think will be relevant to the harvest quantity such as location. secondly, the estimate is matched to 5 existing observations that are close wihtin a distance measure. thirdly, randomly one of the 5 close observations are chosen to replace the missing observation. Then store the imputations and reepeat steps 1-3 several times. Finally, take the mean of the stored imputations and replace the missing with mean. 
-
-"Mi" (multiple imputation) is the Stata command for imputing. Set the data structure as wide or long. Our data is wide because a unique observation is identified by a unique row.
-
-```{s}
-	mi set 			wide 
-```
-Clear any time series settings you may have in place or else the time series will interfere with the linear regression we run later.
-
-```{s}
-	mi xtset		, clear 	
-```
-	
-Register ***mz_hrv*** as the variable we will be imputing.
-
-```{s}
-	mi register		imputed mz_hrv 
-```
-
-Sort the data to ensure reproducibility. Sorting the data can be done at any stage before the actual imputation. Data is uniquely identified by ***hhid*** ***plotid*** ***cropid***. 
-
-```{s}
-	sort			hhid plotid cropid 
-
-	mi impute pmm mz_hrv i.state if cropcode == 1080, add(1) rseed(245780) noisily dots force knn(5) bootstrap
-```
-
-Use predictive mean matching (pmm) to impute the data, the regression’s dependent variable is ***mz_hrv*** and the independent variable is ***i.state*** (a dummy for each state). Set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing ***mz_hrv*** observations to match to the estimate, for example we choose to match to the nearest 5 observations; "bootstrap" requests Stata sample the data with replacement and regress on the created random sample; "rseed(#)" specifies the random number seed used to create the sample. 
-
-Declare the imputing to be over:
-
-```{s}
-	mi 				unset	
-```
-	
-Use command "tabstat" to compare the imputed maize harvest variable (***mz_hrv_1_***) to the original maize harvest variable (***mz_hrv***). The "tabstat" command compares two or more variables on the parameters of our choice, for example we want to see the number of observations in each variable “n”, the mean “mean”, and the minimum and the maximum, “min” and “max”. "Tabstat" is a versatile command and the researcher can choose to report the statistics of their choice. 
-
-```{s}
-	tabstat			mz_hrv mz_hrv_1_ if cropcode == 1080, by(mi_miss) ///
-						statistics(n mean min max) columns(statistics) ///
-						longstub format(%9.3g) 
-```
-
-If after imputation the data resembles the known distribution of maize yields in Nigeria then replace the original maize harvest (***mz_hrv***) with the imputed maize harvest (***mz_hrv_1***) and drop the imputed maize harvest. If the results are still not resembling known distributions then you can start by reducing the distribution you tolerate and replace more missing values based on the new outlier boundaries, then impute the missing data. We continue.
-
-```{s}
-	replace			mz_hrv = mz_hrv_1_  if cropcode == 1080
-	drop			mz_hrv_1_
-```
-
-Make an identifier variable ***cropplot*** that uniquely identifies a crop by the crop’s name, the plot it was grown on, and the household that grew it.  The Stata command "isid" checks a variable or list of variables uniquely identify our observations. Stata will not display a result after the isid command if the variables do uniquely identify our observations but will display an error if the variables do not uniquely our observations. 
-
-```{s}
-	isid			hhid plotid cropid
-	sort			hhid plotid cropid
-	egen			cropplot_id = group(hhid plotid cropid)
-	lab var			cropplot_id "unique crop-plot identifier"
-```
-
-Save the file we have been working on and save it in a seperate place to the orignal raw data.
-
-```{s}
-	save "$root/wave_2/refined/secta3_harvestw2.dta", replace	
-```
-
-# Land area plot size
-
-From the same wave open the plot characteristics dataset "sect11a1_plantingw2.dta" in the post planting file found in the file you downloaded from the microdata, NGA_2012_GHSP-W2_v02_M_STATA. 
-
-```{s}
-	use				"$root/wave_2/raw/sect11a1_plantingw2.dta", clear
-```
-
-The data in "sect11a1_plantingw2.dta" is organized at the plot level and we will eventually match each plot from this file to the crop which grew in the plot from the "secta3_harvestw2.dta" file. 
-
-Confirm the data is uniquely identified by a plot id number and a household id number (hhid) and that no household has two plots with the same id or two households have the same id. 
+	describe
+```	
+Determine which variables we need to uniquely identify each plot. We suspect that the data is identified by houshold id and by plot id. Each plot should be numbered uniquely within a household but plot id will not uniquely identify the plot in the entire data set. Use `isid` followed by a list of variables to confirm that household id and plot id identify each plot. `isid` will not produce any output when those plot id can be uniquely identified, and Stata will produce an error code if at least two observations share the same household id and plot id.
 
 ```{s}
 	sort 			hhid plotid
 	isid 			hhid plotid
 ```
-If household id and plot id do not uniquely identify all observations then inspect the duplicate observations using the Stata command "duplicates report". You should delete all but one of the perfect duplicates i.e. observations that share all information.
 
-# Cleaning Plot Size
+We now check the self reported plot size, the variable is "s11aq4a". 
 
-Begin cleaning the data on plot size. Plot area is measured by a self-reported variable (***s11aq4a***) which is the respondents recollection of the size of the plots. The self-reported land units are not all hecatres so a plot unit variable ***s11aq4b*** encodes the units, there are 7 units encoded by integers 1-7 browse them in the usual way we browse encoded variables and sorting the variable and looking it up in the databrowser. And we will use a conversion file called "land-conversion.dta" later to convert the plots to hectares. The variables in "land-conversion.dta" are conversion factors converting each of the non-standard area units (ridges, heaps, plots, stands, square meters, acres, and hectares) to hectares. Plot size is also measured by a GPS measured plot area (***s11aq4c***) taken by an enumerator with a handheld GPS and is in square meters. Generate descriptively named variables which contain the same data as the self-reported plot size and GPS plot size. 
+`describe s11aq4a` to display the label in the data. The label is "FARMERS RECALL NUMBER". Its not clear what a recall number is so look at the question as it was asked in the survey documentation. 
 
+Rename the variable "s11aq4a" "plot_size_SR" and give it a clear label.
+
+```{s}
+	rename 			s11aq4a plot_size_SR
+	lab	var			plot_size_SR "self reported size of plot, not standardized"
+```
+
+Let's also describe variable "s11aq4b", the unit that the farmer used when stating their plot size. The label of the variable is "FARMERS UNIT".
+	
 ```{s}
 	rename 			s11aq4b plot_unit
-	lab 	var		plot_unit "self reported unit of measure"
-
-	
-	gen 			plot_size_SR = s11aq4a
-	lab	var			plot_size_SR "self reported size of plot, not standardized"
-	
-	gen 			plot_size_GPS = s11aq4c
-	lab 	var		plot_size_GPS 	"GPS plot size in sq. meters"
+	lab var			plot_unit "self reported unit of measure"
 ```
-
-Now take the "land-conversion.dta" file from the zip "NGA_2012_GHSP-W2_v02_M_STATA". Use the merge command to merge "land-conversion.dta" to the master "sect11a1_plantingw2.dta". ***Zone*** will be used to match the master and using because local units differ by zone, Stata will match an observation in the master file with an observation in the using file when the observations share a zone. Specify a many to one merge (m:1) to authorize Stata to match the same observation from the using to multiple observations in the master file. 
+Now rename and label the GPS plot size, variable "s11aq4c". 
 
 ```{s}
-	merge 			m:1 	zone using "$root/wave_2/refined/land-conversion.dta"
+	rename			s11aq4c	plot_size_GPS
+	lab var			plot_size_GPS 	"GPS plot size in sq. meters"
 ```
 
-Keep observations that merged and where ***_merge***=3 and drop observations where ***_merge***=2. The Stata command "keep" will keep all observations that meet a condition and drop all observations that do not meet the condition.
+# Convert Plot size to Hectares
+
+We need to merge in a land conversion file to convert the self reported and the GPS measures into hectares. Each variable in the conversion is a conversion factor for each type of land unit. We will merge the files based on zones that are similar and then command Stata to convert the plot sizes by the appropriate conversion variable. The merge will be a many to one merge on the plot unit. The conversion factors for each unit will be matched to all plots that in the dsame zone. When one observation from the "using" file, the conversion file is the using file in our case, is matched to more than one observation in the "master" file the merge is called many to one or m:1.
+
+```{s}
+	merge 			m:1 	zone using 	"C:/Users/emilk/git/lsms-isa_data_handbook/data/nigeria/wave_2/refined/land-conversion.dta"
+```
+
+The output window displays the number of succesful merges. Hopefully everything in the master was matched. Not everything in the using needs to match. If an observation in the using does not match this means there is a zone for which we do not have land size data on and we do not need conversions for zones we do not have.
+
+The variable "_merge" is made after a merge and assigns each observation a code if it was succesfully matched between the master and the using. Keep the observations that matched and drop all the unmatched observations if the number of unmatcehd was very small. You can also drop the "_merge" command. Go back to the merge and look for code errors if many observations did not match. Common code errors are the wrong matching criteria, the wrong option, the wrong file.
+
 
 ```{s}
 	keep 			if 		_merge == 3
 	drop 			_merge
 ```
 
-We can now convert the self-reported plot size into hectares. Make a new variable ***plot_size_hec_SR*** for self-reported plot size and temporarily make the entries in that variable missing, we will replace them in a moment. 
+Look at the the units the farmers used to measure their plots. They used heaps, ridges, stands,etc. 
+
+	tab 			plot_unit
+
+We are going to multiply the self reported size by a conversion factor using an if command and put the converted values in a new variable called "plot_size_hec". As in if plot unit is heaps then multiply self reported by heap conversion. Plot unit is encoded in the data with numbers and not words as it appears in the tab command. We have written the code and can tell you the code for each unit. But if you would like to know how we found it you `sort plot_unit` and go to the data browser and select the unit cell in plot_unit variable. The unit code is at the top of the data browser window. 
 
 ```{s}
 	gen 			plot_size_hec_SR = .
 	lab var			plot_size_hec_SR 	"SR plot size converted to hectares"
 ```
-
- Convert the measurements not given in hectares into hectares by multiplying the appropriate conversion variable by the farmer’s self-reported plot measurement and replace the missing observations in ***plot_size_hec_SR*** with the converted self-reported plot size. 
-
-The steps to convert and replace ridges with hectares is a follows:
-
+Ridges are `plot_unit == 2`
 ```{s}
 	replace 		plot_size_hec_SR = plot_size_SR*ridgecon	if plot_unit == 2
 ```
 
-For converting heaps:
-
+Heaps are `plot_unit == 1`
 ```{s}
 	replace 		plot_size_hec_SR = plot_size_SR*heapcon	if plot_unit == 1
 ```
-
-For converting stands:
-
+Stands are `plot_unit==3`
 ```{s}
 	replace 		plot_size_hec_SR = plot_size_SR*standcon	if plot_unit == 3
 ```
-
-For converting plots:
-
+Plots are `plot_unit ==4`
 ```{s}
 	replace 		plot_size_hec_SR = plot_size_SR*plotcon	if plot_unit == 4
 ```
-For converting acres:
-
+Acres are `plot_unit==5`
 ```{s}
 	replace 		plot_size_hec_SR = plot_size_SR*acrecon	if plot_unit == 5
 ```
-For converting square meters:
-	
+Square meteres are `plot_unit==7`
 ```{s}
-	replace 		plot_size_hec_SR = plot_size_SR*sqmcon	if plot_unit == 7
+	replace 		plot_size_hec_SR = plot_size_SR*sqmcon		if plot_unit == 7
 ```
-For converting hectares we do not need a conversion:
+Hectares are already in hectares so we dont need to convert them. The hectare code is `plot_unt == 6`
 
 ```{s}
 	replace 		plot_size_hec_SR = plot_size_SR			if plot_unit == 6
 ```
-All observations should have been converted. Count the missing observations to make sure none were left out.
+
+Most of the plots should now be in hectares but lets check for the missing ones. If they are missing and they have a unit we can convert then fix that and make sure they are converted. If they are not converted and they do not have a unit or a unit we do not have a conversion for then leave them missing. We will keep them if the variable is reliable. Reliability will be established after several tests later in the code. We should also replace to missing any observations that used "other unit" and we may impute them later too.
 
 ```{s}
 	count			if plot_size_hec_SR == . 
+	replace  		plot_size_hec_SR = . if plot_unit == 8
 ```
 
-We will have to drop other units that did not have conversion factors in the conversion file.
-	
-Recall, ***plot_size_GPS*** is in square meters and need to be converted into hectares and we will convert it to hectares by multiplying ***plot_size_GPS*** with the square meter conversion factor (***sqmcon***). Make a new variable for the plot area measured by GPS (***plot_size_hec_GPS***).
+We turn to the GPS measures. Check how many plots do not have a GPS.
+
+```{s}
+	count 			if plot_size_GPS == . 
+```
+Quite a few do not have a GPS measure in this file. We should not delete these observations but impute them later. 
+
+Convert the GPS into hectares from square meters.
 
 ```{s}
 	gen 			plot_size_hec_GPS = .
 	lab	var			plot_size_hec_GPS "GPS measured area of plot in hectares"
+	replace 		plot_size_hec_GPS = plot_size_GPS*sqmcon
 ```
 
-Convert them in the same way we converted the ***plot_size_hec_SR***.
+Look again the number of plot sizes that were not converted. Make sure they did not fail convert and had a plot size in square meters. The ones we cannot convert we will impute later
+```{s}
+	count 			if plot_size_hec_GPS !=.
+	count			if plot_size_hec_GPS == . 
+```
+
+How many observations have no self reported plot size and no GPS?
 
 ```{s}
-	replace 		plot_size_hec_GPS = plot_size_GPS*sqmcon
-	
-	count 			if plot_size_hec_GPS == .  
+	count	 		if plot_size_hec_SR != . & plot_size_hec_GPS != .
 ```
+There are a lot of observations that lack both. This will prove a slight inconvenience because we intended to impute an estimate of the missing variable with the non-missing plot size variable. We obviously cannot do that if they are both missing. But we will find other ways to impute which we discuss in the dueness of course.
 
-Self-reported plot size and GPS plot size measure the same thing, and should both be used when they are both reliable. The correlation between self-reported and GPS measurements will be used to establish how closely they resemble each other and if self-reported plot area is reliable.  In Stata the pwcorr command calculates and displays the correlation between two variables. 
+# Impute the missing plot sizes
+
+Self reported plot size and GPS plot size measure the same thing so if they are both reported perfectly then the two variables should be identical or very close at least. But this is not often the case. Farmers sometimes have difficulty accurately recalling the size of their plots. 
+
+We can Check the correlation between self reported plot size and the GPS plot size with `pwcorr`.
 
 ```{s}
 	pwcorr 			plot_size_hec_SR plot_size_hec_GPS
 ```
 
-Do they possess a strong or weak correlation?
+There is a low correlation between self reported plot size and GPS.
 
-# plot size
+`pwcorr` has several options to change the range of values we want the correlation calculated on. For instance we might suspect that an incorretly large self reported plot size will have a lower correlation with the GPS plot size. Calculate the correlation of self reported and GPS of all observations within 3 standard deviations of the mean of GPS. Two steps are involved. First, `summarize plot_size_hec_GPS` in detail. Second, command `pwcorr` and add an if statement with a range of three standard deviations.
 
-Exame the correlation between ***plot_size_hec_SR*** and ***plot_size_hec_GPS*** within three standard deviations of the mean of ***plot_size_hec_GPS***. We set the comparison boundary so were limiting observations that are either within 3 standard deviations or only outside of 3 standard deviations. The boundary is set by a pwcorr command then the two variables we want examine, followed by an if statement of a boundary with the option "inrange()". Within three standard deviations of the mean requires setting an upper bound, which is `r(p50)' + (3*`r(sd)') where `r(p50)' is the mean and `r(sd)' is the standard deviation and 3*`r(sd)' is three times the standard deviation, and a lower bound which is `r(p50)' - (3*`r(sd)') where `r(p50)' is the mean and `r(sd)' is the standard deviation and 3*`r(sd)' is three times the standard deviation. Importantly you must run a "summarize" command so that stata can store the distribution statistics such as mean and standard deviation which you use later in the code.
+Here is a breakdown of doing the second part of the `pwcorr` command. 
+
+`inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))`
+
+`inrange()` signals that we are bounding the observations Stata can use with a range or a lower and upper bound, or just a lower bound and just an upper bound.
+
+`inrange(plot_size_hec_GPS,` we want the range based on the values of "plot_size_hec_GPS".
+
+`inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)')` the lower bound is three standard deviations, (3*`r(sd)'), below, -, the mean, `r(p50)'. 
+
+`inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))` the upper bound is three standard deviations, (3*`r(sd)'), above, +, the mean, `r(p50)'
 
 ```{s}
-
-	sum 		plot_size_hec_GPS, detail
+	sum 			plot_size_hec_GPS, detail
 	pwcorr 			plot_size_hec_SR plot_size_hec_GPS if ///
-				inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+ (3*`r(sd)'))
+						inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))
 ```
-
-What is the strength of the correlation?
-
-Correlate observations within three standard deviations of the mean of ***plot_size_hec_SR*** and ***plot_size_hec_GPS***.
+The correlation turns out to be even lower when we exclude outliers. Clearly the correlation is sensitive to the boundaries so try another range. Set the range to three standard deviations of GPS and self reported. Summarize all the variables first before using their measures of central tendency.
 
 ```{s}
-
 	sum 			plot_size_hec_GPS, detail
 	sum 			plot_size_hec_SR, detail
 	pwcorr 			plot_size_hec_SR plot_size_hec_GPS if ///
-				inrange(plot_size_hec_GPS,`r(p50)'- (3*`r(sd)'),`r(p50)'+ (3*`r(sd)')) & ///
-				inrange(plot_size_hec_SR,`r(p50)'- (3*`r(sd)'),`r(p50)'+ (3*`r(sd)'))
+						inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)')) & ///
+						inrange(plot_size_hec_SR,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))
 ```
 
-Check the correlation between ***plot_size_hec_SR*** and ***plot_size_hec_GPS*** outside of 3 standard deviations of the mean and for that we must know what the larger values ***plot_size_hec_SR*** and ***plot_size_hec_GPS*** take. A "summarize" command performed on ***plot_size_hec_SR*** and ***plot_size_hec_GPS*** will report the largest values in both variables. In the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria we find that 3 hectares is close to the largest plots measured in the sample.
+The correlation is even lower.
+
+Consider the observations we left out when we set the range. Examine larger plot sizes.
 
 ```{s}
-	pwcorr 			plot_size_hec_GPS plot_size_hec_SR 	if 	plot_size_hec_GPS > 3 
+
+	tab				plot_size_hec_GPS 	if 	plot_size_hec_GPS > 2
 ```
-Examine the correlation between plot_size_hec_SR and plot_size_hec_GPS among smaller plots. In the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria we find that 0.01 hectares was close to the smallest plots measured in the sample.
+There are few plots larger than 2 hectares.
+```{s}
+
+	tab				plot_size_hec_GPS 	if 	plot_size_hec_GPS > 20
+```{s}
+There are none greater than 20 hectares. There are no unreasonably large plots.
+
+Even so check the correlation at larger plot sizes.
+
 
 ```{s}
-	pwcorr 		plot_size_hec_GPS plot_size_hec_SR 	if 	plot_size_hec_GPS < 0.01
+	sum 			plot_size_hec_GPS, detail
+	pwcorr 			plot_size_hec_GPS plot_size_hec_SR 	if 	///
+						plot_size_hec_GPS > 3 & !missing(plot_size_hec_GPS)
 ```
 
-The researcher's judgement should be used to determine if the plot size responses are reasonable. 
+The correlation at larger plot sizes is higher than other ranges. But it is still low.
 
+Compare the GPS and self reported variables side by side.
+	
 ```{s}
+
 	sum 			plot_size_hec_GPS
 	sum 			plot_size_hec_SR
 ```
-We will use the GPS plotsize, ***plot_size_hec_GPS*** because we find that GPS plot area is more reliable than self-reported measures of plot ***size plot_size_hec_SR***.
 
-Save the file we have been working in "sect11a1_plantingw2.dta" in a separate location to the raw file.
+GPS tends to be smaller and more realistic. GPS is more accurate than self reported measures. GPS is more reliable than the self reported measures because at least we can say with confidence that the measurements were taken recently with GPS technology. We will not be using self reported because it has such a low correlation with the GPS measure that we are more confident using.
+
+We want to replace the missing values using imputation. Imputation replaces missing data with an estimate of the missing data which we obtained by estimating the existing data. We use a specific technique of Predictive Mean Matching technique (PMM). We set out the steps taken in pmm imputation to provide context for the impute commands in Stata. 
+
+In summary, the variable with the missing variables is taken as a dependent variable in a least squares regression. The estimate is matched to 5 non-missing observations in the dependent variable that have values wihtin a certain distance of the estimate. Randomly one of the 5 close observations are chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more detail in practice on imputation to simulate missing data.
+
+`Mi` (multiple imputation) is the Stata command for imputing. Set the data structure as wide or long. Our data is wide because a unique observation is identified by a unique row.
+
+```{s}
+
+	mi set 			wide 
+```	
+Clear any time series settings you may have in place or else the time series will interfere with the linear regression we run later.
+```{s}
+
+	mi xtset		, clear 
+```
+Register ***plot_size_hec_GPS*** as the variable we will be imputing.
+	
+```{s}
+
+	mi register 	imputed plot_size_hec_GPS
+```
+Sort the data to ensure reproducibility. Sorting the data can be done at any stage before the actual imputation. Data is uniquely identified by ***hhid*** ***plotid*** ***cropid***. 
+
+```{s}
+
+	sort			hhid plotid, stable 
+```
+	
+Use predictive mean matching (pmm) to impute the data, the regression’s dependent variable is ***plot_size_hec_GPS*** and the independent variable is ***i.state*** (a dummy for each state). Set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing ***plot_size_hec_GPS*** observations to match to the estimate, for example we choose to match to the nearest 5 observations; "bootstrap" requests Stata sample the data with replacement and regress on the created random sample; "rseed(#)" specifies the random number seed used to create the sample. 
+
+
+```{s}
+	mi impute 		pmm plot_size_hec_GPS i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+```
+Declare the imputing to be over:
+
+```{s}
+
+	mi unset
+```
+	
+Use `tabstat` to compare the imputed plot size (***plot_size_hec_GPS***) to the original plot size (***plot_size_hec_GPS***). The "tabstat" command compares two or more variables on the parameters of our choice, for example we want to see the number of observations in each variable “n”, the mean “mean”, and the minimum and the maximum, “min” and “max”. "Tabstat" is a versatile command and the researcher can choose to report the statistics of their choice. 
+
+```{s}
+	tabstat 		plot_size_hec_GPS plot_size_hec_SR plot_size_hec_GPS_1_, ///
+						by(mi_miss) statistics(n mean min max) columns(statistics) ///
+						longstub format(%9.3g)
+```
+
+Do the changes look reasonable? If they are reasonable then we can replace the missing values with the imputed values.
+
+```{s}
+	replace			plot_size_hec_GPS = plot_size_hec_GPS_1_
+```
+
+Are there any more missing plot sizes? 
+
+```{s}
+count  				 if plot_size_hec_GPS == .
+```
+Rename our main variable.
+```{s}
+	rename			plot_size_hec_GPS_1_ plotsize
+	lab	var			plotsize	"plot size (ha)"
+```
 
 ```{s}
 	save "$root/wave_2/refined/sect11a1_plantingw2.dta", replace	
 ```
-# Maize Yield
-
- Now open "secta3_harvestw2.dta" and merge the crop data with the plot data. We want to use "secta3_harvestw2.dta" as the master file because all crops were grown on plots but not all plots were used to grow crops. 
-
-```{s}
-	use				"$root/wave_2/refined/secta3_harvestw2.dta", clear 
-```
-	
-We made an id variable ***cropplot_id*** when working on "sect3a_harvestw2.dta" confirm that it uniquely identifies each observation with the "isid" command. Recall that when a variable uniquely identifies each observation "isid" will not display a result and when a variable fails to uniquely identify the observations "isid" will display an error.
-
-```{s}
-	isid			cropplot_id
-```
-	
-Merge in plot size data, "sect11a1_plantingw2.dta", and merge on ***hhid*** and ***plotid***. Multiple crops can be grown on one plot and multiple crops may be matched to the same plot, set the matching option to many to one (m:1).
-
-```{s}
-	merge 			m:1 hhid plotid using "$root/wave_2/refined/sect11a1_plantingw2.dta"
-```
-	
-Drop observations that did not match. Observations that did not match are plots that we cannot match to a crop or crops we cannot match to a plot and the only way to identify where a crop was grown or what crop was grown on a plot is the "merge" command we just executed so we cannot do much more. Recall all successful matches have ***_merge***=3. Note “!=” is equivalent to a "not equal" statement so let's use != to drop all observations not equal to 3.
-
-```{s}
-	drop			if _merge != 3
-```
-	
-The data is currently at the crop level, "collapse" the data to the plot level. Before we collapse note currently there may be multiple entries for a single plot because the same plot may have matched with multiple crops and we want to condense multiple crop entries into a single entry that summarizes all the crop data for one plot. So we have to decide how to agglomerate multiple crops, in this case adding them together is best option. So we write the option (Sum) after "collapse" to get the total weight of maize harvested from the plot. Take the maximum value of the plot size, plot duplicates have the same size. ***Mz_damaged*** is a binary variable and the maximum value is 1 so agglomerating it with a max maintains the binary. 
-
-```{s}
-	collapse (sum)	 mz_hrv  (max) plot_size_hec_GPS mz_damaged, by(hhid plotid zone state lga sector ea)
-```
-
-Replace non-maize harvest values as missing.
-
-```{s}
-	tab			mz_damaged, missing
-	replace			mz_hrv = . if mz_damaged == . & mz_hrv == 0		
-	drop 			mz_damaged
-```
-
-Generate a variable for the area of land maize was grown on.
-
-```{s}
-	gen			mz_lnd = plot_size_hec_GPS	if mz_hrv != .
-```
-
-Construct maize yield (kg/ha).
-
-```{s}
-	gen			mz_yld = mz_hrv / mz_lnd, after(mz_hrv)
-	lab var			mz_yld	"maize yield (kg/ha)"
-```
-
-Save the file.
-
-```{s}
-	save "$root/wave_2/refined/secta3_harvestw2.dta", replace	
-```
 
 	
-# Citations
+Citations
 
 Kilic, T., Zezza, A., Carletto, C., & Savastano, S. (2017). Missing (ness) in action: selectivity bias in GPS-based land area measurements. World Development, 92, 143-157.
-

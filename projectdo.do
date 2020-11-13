@@ -43,7 +43,7 @@
 
 * define root folder globals
     if `"`c(username)'"' == "jdmichler" {
-        global 		project  	"C:/Users/jdmichler/git/lsms-isa_processed_dataset"
+        global 		project  	"C:/Users/jdmichler/git/lsms-isa_data_handbook"
 		
 		* tell Stata where to find the relevant programs
 		whereis pdflatex 		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
@@ -51,7 +51,7 @@
     }
 
     if `"`c(username)'"' == "aljosephson" {
-        global 		project  	"C:/Users/aljosephson/git/lsms-isa_processed_dataset"
+        global 		project  	"C:/Users/aljosephson/git/lsms-isa_data_handbook"
 		
 		* tell Stata where to find the relevant programs
 		whereis pdflatex 		"C:/Program Files/MiKTeX 2.9/miktex/bin/x64/pdflatex.exe"
@@ -59,7 +59,7 @@
     }
 
     if `"`c(username)'"' == "emilk" {	
-        global 		project  	"C:/Users/emilk/git/lsms-isa_processed_dataset"	
+        global 		project  	"C:/Users/emilk/git/lsms-isa_data_handbook"	
 		
 		* tell Stata where to find the relevant programs
 		whereis pdflatex 		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
@@ -172,5 +172,18 @@ if $pack == 1 {
 		set more off
 }
 
+* **********************************************************************
+* 1 - Build handbook
+* **********************************************************************
 
+* Build handbook if global is set to 1
+if $document == 1 {
+	do	"$code/nigeria/nigeria_handbook.do"
+	
+	
+	
+	
+	
+	
+}
 /* END */
