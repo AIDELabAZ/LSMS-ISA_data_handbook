@@ -9,7 +9,7 @@ The labor data in the Nigeria General Household Survey, Panel 2012-2013, Wave 2 
 Open the planting labor dataset "sect11c1_plantingw2.dta".
 
 ```{s}
-use "C:/Users/emilk/git/lsms-isa_data_handbook/data/nigeria/wave_2/raw/sect11c1_plantingw2.dta", clear
+use "$root/wave_2/raw/sect11c1_plantingw2.dta", clear
 	
 ```
 

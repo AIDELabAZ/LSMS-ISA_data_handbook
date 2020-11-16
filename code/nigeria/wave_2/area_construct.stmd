@@ -9,7 +9,7 @@ This chapter is a guide to generating a data set for plot sizes in hectares. Plo
 Use the file "sect11a1_plantingw2.dta" from the raw data location or if you have stored the raw data somewhere else.
 
 ```{s}
-use "C:/Users/emilk/git/lsms-isa_data_handbook/data/nigeria/wave_2/raw/sect11a1_plantingw2.dta", clear
+use "$root/wave_2/raw/sect11a1_plantingw2.dta", clear
 ```
 
 We want to `describe` the data which will show the variables and the distribution of the data.

@@ -9,7 +9,7 @@ The steps to prepare the data on fertilizer use in Nigeria for analysis are to i
 Open "sect11d_plantingw2.dta" from the Nigeria General Household Survey, Panel 2012-2013, Wave 2 using the appropriate file path based on the location of the raw data.
 
 ```{s}
-	use				"C:\Users\emilk\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw\sect11d_plantingw2.dta", clear
+	use				"$root\wave_2\raw\sect11d_plantingw2.dta", clear
 ```
 
 `Describe` the data will display the variables' names and the data labels. The variables are named with reference to the section and question number that they appear in the survey instrument and it will be necessary to look at the labels or the survey instrument to know what the variable is.
