@@ -53,7 +53,7 @@ Now rename and label the GPS plot size, variable "s11aq4c".
 We need to merge in a land conversion file to convert the self reported and the GPS measures into hectares. Each variable in the conversion is a conversion factor for each type of land unit. We will merge the files based on zones that are similar and then command Stata to convert the plot sizes by the appropriate conversion variable. The merge will be a many to one merge on the plot unit. The conversion factors for each unit will be matched to all plots that in the dsame zone. When one observation from the "using" file, the conversion file is the using file in our case, is matched to more than one observation in the "master" file the merge is called many to one or m:1.
 
 ```{s}
-	merge 			m:1 	zone using 	"C:/Users/emilk/git/lsms-isa_data_handbook/data/nigeria/wave_2/refined/land-conversion.dta"
+	merge 			m:1 	zone using 	"$root/wave_2/refined/land-conversion.dta"
 ```
 
 The output window displays the number of succesful merges. Hopefully everything in the master was matched. Not everything in the using needs to match. If an observation in the using does not match this means there is a zone for which we do not have land size data on and we do not need conversions for zones we do not have.
