@@ -1,10 +1,10 @@
-% statamarkdown intro
-% emil keetui 
+% Generating Fertilizer (Kg) in Nigeria General Household Survey, Panel 2012-2013, Wave 2
+
+% Author: Emil Kee-Tui 
 % `s c(current_date)`
 
-# Generating Fertilizer (Kg) in Nigeria General Household Survey, Panel 2012-2013, Wave 2
 
-The steps to prepare the data on fertilizer use in Nigeria for analysis are to identify the types of fertilizers being used, identify the sources fertilizer was obtained from, and add together all the fertilizer and remove and impute outliers.
+To prepare the fertilizer input data we are going to identify the types of fertilizers being used, identify where fertilizer was obtained from, create a total fertilizer used variable, and impute outliers.
 
 Open "sect11d_plantingw2.dta" from the Nigeria General Household Survey, Panel 2012-2013, Wave 2 using the appropriate file path based on the location of the raw data.
 
@@ -12,17 +12,20 @@ Open "sect11d_plantingw2.dta" from the Nigeria General Household Survey, Panel 2
 	use				"$root\wave_2\raw\sect11d_plantingw2.dta", clear
 ```
 
-`Describe` the data will display the variables' names and the data labels. The variables are named with reference to the section and question number that they appear in the survey instrument and it will be necessary to look at the labels or the survey instrument to know what the variable is.
+`Describe` the data will display the variables' names and the data labels. The variables are named with reference to the survey instrument, the section and question number that they were asked in the survey. You may have to find the instrument on the World Bank website to figure out exactly what the variable measures.
+
+We have used the `quietly` command to suppress stata from displaying output. You do not have to include the quietly command. We have included it to make the guide more user friendly and not filled with stata output.
+
 	
 ```{s}
 
-	describe
+	quietly describe
 	
 ```
 
-The data is at the household and the plot level. For example at the plot level are responses to ***s11dq1*** "have you used any fertilizer on the plot?" and ***s11dq4*** "how much fertilizer did you use on the plot?" At the household level are ***s11dq30b*** "what was the main mode of transport for bought fertilizer?" Before using each variable check the label and the survey instrument to determine the level of observation.
+The data is at the household and plot level. For example at the plot level, **s11dq1** "have you used any fertilizer on the plot?" and **s11dq4** "how much fertilizer did you use on the plot?" At the household level, **s11dq30b** "what was the main mode of transport for bought fertilizer?" 
 
-Each row in the data can be identified at the household-plot level. `isid` followed by ***hhid plotid*** will not display a message if we can identify the observations by ***hhid plotid***.
+Each row in the data can be identified at the household-plot level. Verify this using `isid` and the variables we suspect uniquely identify the data. `Isid` will not return an output if the variables we suspect do uniquely identify the data and an error code will be displayed if the data is not identified in the way we suspect. 
 
 ```{s}
 
@@ -30,33 +33,34 @@ Each row in the data can be identified at the household-plot level. `isid` follo
 	isid			hhid plotid
 ```	
 	
-Which farmers used fertilizer at all? ***s11dq1*** is a binary if any fertilizer was used at all.
+Which farmers used fertilizer at all? **s11dq1** is a binary if any fertilizer was used at all.
 
 ```{s}
 	rename			s11dq1 fert_any
 	lab var			fert_any "=1 if any fertilizer was used"
 ```
 
-We do not consider manure to be a fertilizer because we cannot accurately measure the amount of manure used because it is rarely measured before use. Our production function with manure would be unreliable. So we drop all observations that mention manure as a fertilizer.
+We do not consider manure to be a fertilizer because we cannot accurately measure the amount of manure used because it is rarely measured before use. Our production function would be less sensitive if we used an input variable that did not have accurate weights. So we drop all observations that mention manure as a fertilizer.
 
-The variables we have identified as important on which we will later use for our fertilizer use total and the variables that have "manure" as a response are:
+We want to replace manure obsevations with missing in the following variables that are important for constructing the total fertilizer at the end:
 
-. ***s11dq3***              WHAT IS THE MAIN TYPE OF LEFT OVER FERTILIZED USED ON [PLOT]?
-. ***s11dq7***            WHAT IS THE TYPE OF THE FERTILIZER YOU USED MOST?
-. ***s11dq15***          WHAT IS THE TYPE OF THE FERTILIZER YOU USED?
-. ***s11dq27***           WHAT IS THE TYPE OF [PURCHASED FERTILIZER] USED ON [PLOT]?
+. **s11dq3**             	WHAT IS THE MAIN TYPE OF LEFT OVER FERTILIZED USED ON [PLOT]?
+. **s11dq7**            	WHAT IS THE TYPE OF THE FERTILIZER YOU USED MOST?
+. **s11dq15**        		WHAT IS THE TYPE OF THE FERTILIZER YOU USED?
+. **s11dq27**           	WHAT IS THE TYPE OF [PURCHASED FERTILIZER] USED ON [PLOT]?
 
 If you find other variables that include "manure" as a response and you feel as we do that it should not be included in your data then you should remove it.
 
-Use `tab` to display the exact responses.
+Use `tab` to display the ways people responded to the question about fertilizer types and use.
 
 ```{s}
 
-tab s11dq3
-tab s11dq7
-tab s11dq15
-tab s11dq27
-```{s}
+quietly tab s11dq3
+quietly tab s11dq7
+quietly tab s11dq15
+quietly tab s11dq27
+```
+Responses are encoded in the data with numbers and not words as it appears in the tab command. We have written the unit code and can tell you the code for manure. We found the code by sorting the variable, `sort var`, then going to the data browser, selecting a cell in the variable column, and seeing the number displayed in the bar at the top of the data browser window. 
 
 ```{s}
 	drop if			s11dq3 == 3 | s11dq3 == 4
@@ -64,13 +68,13 @@ tab s11dq27
 	drop if			s11dq15 == 3
 	drop if			s11dq27 == 3
 ```
-We dropped 156 observations (manure).
+We dropped 156 observations relating to manure.
 	
-#Quantity of fertilizer from different sources
+# Quantity of Fertilizer Obtained from Different Sources
 
 The quantities are in kg's.
 
-Leftover fertilizer is ***s11dq4***.
+Leftover fertilizer is **s11dq4**.
 
 ```{s}
 
@@ -90,7 +94,7 @@ Missing values are put in when the respondent did not use leftover fertilizer. C
 	replace			leftover_fert_kg = 0 if leftover_fert_kg ==.
 ```
 
-Free fertilizer is ***s11dq8***.
+Free fertilizer is **s11dq8**.
 
 ```{s}
 	gen				free_fert_kg = s11dq8
@@ -109,9 +113,9 @@ Missing values are put in when the respondent did not use leftover fertilizer. C
 	replace			free_fert_kg = 0 if free_fert_kg ==. 
 ```
 
-Respondents classified purchased fertilizers by their sources, and there is the option to have received fertilizer from up to two sources. Subsequently we call them purchased fertilizer's 1 and 2. But the order is unimportant.
+Respondents classified purchased fertilizers by their sources, and there is the option to have received fertilizer from up to two sources. Subsequently we call them purchased fertilizer's 1 and 2. But which one you call 1 or 2 is unimportant.
 
-Purchased fertilizer is ***s11dq16***.
+Purchased fertilizer is **s11dq16**.
 
 ```{s}
 
@@ -122,7 +126,7 @@ What is the distribution?
 
 	sum				purchased_fert_kg1
 ```
-We find the max value to be unreasonably high, but later we shall remove it and impute the missing value.
+We find the max value to be unreasonably high for purchased fertilizer. This is based on how much the max differs from the mean. Later we shall remove it and impute the missing value.
 
 ```{s}
 
@@ -160,52 +164,57 @@ What is the distribution?
 
 The max is quite high.
 
-Replace with missing, all observations that are 3 standard deviations above the mean. This is in line with Chebychev's theorem that over 88% of the data falls within 3 standard deviations of the mean, so observations very far out are more unlikely to occur naturally and occur as a result of error in the surveying.
+Replace with missing, all observations that are 3 standard deviations above the mean. This is in line with Chebychev's theorem that over 88% of the data falls within 3 standard deviations of the mean, so observations very far out are more unlikely to occur naturally and occur as a result of error of recall.
 
 ```{s}
 	sum				fert_use, detail
 	replace			fert_use = . if fert_use > `r(p50)'+(3*`r(sd)')
 ```
 
-We want to replace the missing values using imputation. Imputation replaces missing data with an estimate of the missing data which we obtained by estimating the existing data. We use a specific technique of Predictive Mean Matching technique (PMM). We set out the steps taken in pmm imputation to provide context for the impute commands in Stata. 
+# Impute the Missing Observations
 
-In summary, the variable with the missing variables is taken as a dependent variable in a least squares regression. The estimate is matched to 5 non-missing observations in the dependent variable that have values wihtin a certain distance of the estimate. Randomly one of the 5 close observations are chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more detail in practice on imputation to simulate missing data.
+Imputation replaces missing data with an estimate from the existing data. We use Predictive Mean Matching (PMM) imputation. We set out the steps taken in PMM imputation to provide context for the impute commands in Stata. 
+
+We estimate the missing data with a least squares regression. The variable with the missing observations is the dependent variable. For each missing observation we obtain an estimated observation. The estimate is matched to 5 non-missing observations in the dependent variable that are closest to the estimated value. One of the 5 close observations is randomly chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more details on the process of imputation with household survey data.
 
 `Mi` (multiple imputation) is the Stata command for imputing. Set the data structure as wide or long. Our data is wide because a unique observation is identified by a unique row.
 ```{s}
 
-	mi set 			wide 	
+	quietly mi set 			wide 	
 ```	
 Clear any time series settings you may have in place or else the time series will interfere with the linear regression we run later.
 ```{s}
 
 	mi xtset		, clear 
 ```
-Register ***fert_use*** as the variable we will be imputing.
+Register **fert_use** as the variable we will be imputing.
 ```{s}
 
 	mi register		imputed fert_use 
 ```	
-Sort the data to ensure reproducibility. Sorting the data can be done at any stage before the actual imputation. Data is uniquely identified by ***hhid*** ***plotid***. 
+Sort the data to ensure reproducibility. Sorting the data can be done at any stage before the actual imputation. Data is uniquely identified by **hhid** **plotid**. 
 ```{s}
 	sort			hhid plotid, stable 
 ```	
-Use predictive mean matching (pmm) to impute the data, the regression’s dependent variable is ***fert_use*** and the independent variable is ***i.state*** (a dummy for each state). Set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing ***plot_size_hec_GPS*** observations to match to the estimate, for example we choose to match to the nearest 5 observations; "bootstrap" requests Stata sample the data with replacement and regress on the created random sample; "rseed(#)" specifies the random number seed used to create the sample. 
+
+And finally imputing. Since imputing is a process of estimation it is natural that we should specify the estimation similar to setting up a simple regression. Impute with the fertilizer variable as the dependent variables and state, the variable for the geographic state location of the observation, as the independent variable. 
+
+Use predictive mean matching (pmm) to impute the data, the regression’s dependent variable is **fert_use** and the independent variable is **i.state** (a dummy for each state). Set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing **fert_use** observations to match to the estimate, for example we choose to match to the nearest 5 observations; "bootstrap" requests Stata sample the data with replacement and regress on the created random sample; "rseed(#)" specifies the random number seed used to create the sample. 
 ```{s}
 
-	mi impute 		pmm fert_use i.state, add(1) rseed(245780) noisily dots force knn(5) bootstrap
+	quietly mi impute 		pmm fert_use i.state, add(1) rseed(245780) noisily dots force knn(5) bootstrap
 ```						
 Declare the imputing to be over:
 ```{s}
 
-	mi 				unset
+	quietly mi 				unset
 ```	
 How did imputation go?
 ```{s}
 
 	sum 			fert_use_1_, detail
 ```
-If you are satisfied with the results then replace the missing values in ***fert_use*** with the values in ***fert_use_1_***. We only want to replace those observations missing because they had outliers, those observations should have a ***fert_any***== 1.
+If you are satisfied with the results then replace the missing values in **fert_use** with the values in **fert_use_1_**. We only want to replace those observations missing because they had outliers, those observations should have a **fert_any**== 1.
  
 ```{s}
 
@@ -214,7 +223,7 @@ If you are satisfied with the results then replace the missing values in ***fert
 
 	drop			fert_use_1_
 ```
-Check for missing observations for ***fert_use*** and ***fert_any***.
+Check for missing observations for **fert_use** and **fert_any**.
 
 ```{s}
 	count if fert_any == .
@@ -223,13 +232,19 @@ Check for missing observations for ***fert_use*** and ***fert_any***.
 
 We will want to find those missing observations and make sure they are missing correctly.
 
-Convert missing values of ***fert_any*** to "no".
+Convert missing values of **fert_any** to "no".
 
 ```{s}
 
 	replace			fert_any = 2 if fert_any == .
 ```	
-	
+
+We want the data set to only have the variables we are interested in using so we should drop the ones we are not using. There are more variables we want to drop so we can use `keep` to keep the ones we want and drop everything else.
+
+```{s}
+	keep 			hhid zone state lga sector hhid ea plotid fert_any fert_use tracked_obs
+```
+
 Save the file.
 
 ```{s}

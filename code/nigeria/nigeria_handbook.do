@@ -28,13 +28,15 @@
 * **********************************************************************
 
 * compile nigeria handbook documents		
-	*markstat using "$hndk/wave_2/yield_construct", docx
+*markstat using "$hndk/wave_2/yield_construct", docx
 	
-	markstat using "$hndk/wave_2/area_construct", docx keep
+	*markstat using "$hndk/wave_2/area_construct", docx
 	
-*	markstat using "$hndk/wave_2/planting_labor", docx
+	*markstat using "$hndk/wave_2/planting_labor", docx
+	
+		*markstat using "$hndk/wave_2/harvest_labor", docx
 
-*	markstat using "$hndk/wave_2/fertilizer", docx
+*markstat using "$hndk/wave_2/fertilizer", docx
 
 
 	
