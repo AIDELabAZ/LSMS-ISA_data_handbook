@@ -28,7 +28,7 @@
 * **********************************************************************
 
 * compile nigeria handbook documents		
-*markstat using "$hndk/wave_2/yield_construct", docx
+markstat using "$hndk/wave_2/yield_construct", docx
 	
 	*markstat using "$hndk/wave_2/area_construct", docx
 	
