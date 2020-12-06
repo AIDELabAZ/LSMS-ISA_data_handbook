@@ -2,9 +2,9 @@
 % Author: Emil Kee-Tui 
 % `s c(current_date)`
 
-The labor data in the Nigeria General Household Survey, Panel 2012-2013, Wave 2 consists of planting labor and post planting labor. Information on labor was collected in two visits and as such planting labor and post planting labor are in two different files. We will first demonstrate the steps to prepare the planting labor and then we will demonstrate the steps to prepare the harvest labor. 
+The labor data in the Nigeria General Household Survey, Panel 2012-2013, Wave 2 consists of planting labor and post planting labor. Data on labor was collected during two visits and as such planting labor and post planting labor are in two different files. We will demonstrate the steps to prepare the planting labor and then in another chapter we will demonstrate the steps to prepare the harvest labor. 
 
-The planting labor data was collected during the survey administered in the planting season. The survey did not ask respondents to specify the exact tasks that labor was performing so we assume the labor is aggregated into all the tasks that take place during the planting season such as weeding, land preperation, and planting. The data was gathered at the plot level. We want to produce a variable that is the sum of all family labor, hired labor and exchanged labor employed on a plot for the planting season.
+The planting labor data was collected during the survey administered in the planting season. The survey did not ask respondents to specify the exact tasks that labor was performing. We assume the labor represented in this data set aggregated all the tasks that take place during the planting season such as weeding, land preperation, and planting. The labor is at the plot level, meaning it is the number of hours used on a particular plot. The labor is organized by the source of the labor such as family, hired, exchange. We want to produce a variable that is the sum of all family labor, hired labor and exchanged labor employed on a plot for the planting season.
 
 Open the planting labor dataset "sect11c1_plantingw2.dta".
 
@@ -13,46 +13,38 @@ use "$root/wave_2/raw/sect11c1_plantingw2.dta", clear
 	
 ```
 
-The variables have coded names that refer to the question in the survey. You can access the survey instrument on the World Bank website and look up the question to see exactly how the question was put to the respondents. In the data the labels tell us something about what the variable measures. `Describe` outputs all variables' labels along with data type and more technical information about howo the variable is stored in the file. 
+`Describe` the data will display the variables' names and the data labels. The variables names are somewhat obtuse because they are named with reference to the survey instrument, namely what section and order the question appears in the survey. The name is used to look up the question in the survey and read exactly how the question was asked to the respondent.
 
-We have used the `quietly` command to suppress stata from displaying output. You do not have to include the quietly command. We have included it to make the guide more user friendly and not filled with stata output.
+Take notice, we use the `quietly` command in front of most of our commands because we want to suppress stata from displaying output. We include `quietly` to make our guide look user friendly. We recommend you do not include the 'quietly' command so you can see the output. 
 
 ```s/
 	quietly describe
 ```
 
-Take note of the variables in this file, you can return to `describe` if you'd like to build another dataset with labor variables.
-
-Is the data organized by household id and then plot as we claimed at the start? Verify this using `isid` and the variables we suspect uniquely identify the data. `Isid` will not return an output if the variables we suspect do uniquely identify the data and an error code will be displayed if the data is not identified in the way we suspect.
+All plots belong to a household, so we can uniquely identify an observation in the data using the household id and then the plot id. Verify that household id and plot id uniquely identify the data using `isid`. `Isid` will not return an output if household id and plot id uniquely identify the data, however an error code will be displayed if the data is not identified in the way we suspect.
 
 ```{s}
 	sort			hhid plotid
 	isid			hhid plotid
 ```
 
-Per Palacios-Lopez et al. (2017) in Food Policy, we cap individual labor day contributions per activity in the following ways:
-
- 7 days * 13 weeks = 91 days for land preperation and planting
- 7 days * 26 weeks = 182 days for weeding and other non-harvest activities
- 7 days * 13 weeks = 91 days for harvesting
-
-We take these caps to be the upper bound for pre-harvest labor use in the Nigeria. We want to remove the observations outside the boundary because they are too high and a possible error of recall. When they exceed their caps we will replace them with a missing value and impute them, more said about imputation later.
-
-We will also exclude child labor days. And note that we we can't tell gender or age of household members so that variable will be genderless, not that that matters because the final variable is a sum of all labor days on the plot.
-
 # Household Labor
 
-On each plot up to four family member's labor is recorded. There is a variable for days worked per week and weeks worked per year. To get the total hours worked in a year multiply the days worked per week by the weeks worked per year. Create a varaible that is the planting season labor supplied by each member of the family.
+On each plot up to four family member's labor is recorded. There is a variable for days worked per week and another variable for weeks worked per year. To get the total hours worked in a year multiply the days worked per week by the weeks worked per year. Create a varaible that is the planting season labor supplied by each member of the family.
+
+Variable "s11c1q1a2" is the number of days per week for household member 1 on a specific plot.
+Variable "s11c1q1a3" is the number of weeks per year household member 1 supplied to a specific plot.
+Labor from other family memebers differs from the names of the two previous variables by the penultimate letter.
 
 ```{s}
 	quietly gen				hh_1 = (s11c1q1a2 * s11c1q1a3)
 ```
-Plots that did not have family labor will return a missing value, replace those missing values with a 0.
+Plots that did not have family labor will return a missing value. We should replace those missing values with a 0 because missing values cannot have mathematical operations performed on them. Replace those missing values with a 0. 
 
 ```{s}
 	quietly replace			hh_1 = 0 if hh_1 == .
 ```
-
+Proceed with the other 3 family labor.
 
 ```{s}
 	quietly gen				hh_2 = (s11c1q1b2 * s11c1q1b3)
@@ -67,7 +59,7 @@ Plots that did not have family labor will return a missing value, replace those 
 
 # Hired Labor
 
-The data contains variables for the number of men, women and children were hired to work on the plot and the number of days men, women and children worked on the plot. Ideally we would construct hired labor days by multiplying the number of people hired by the days they worked, but we do not have in the data if the same number of people worked during everyday the plot had hired labor working on it. Therefore we use the number of days hired labor worked on a plot as a measure of hired labor.
+Ideally we would construct hired labor days by multiplying the number of people hired by the days they worked, but the data asks for total number of people hired and the total days worked by hired labor on that plot. It may be that not everyone was employed all at one time, meaning it would be erroneous to get the total hired labor days by multiplying the number of people hired by the number of days worked by hired people. Therefore we use the number of days hired labor worked on a plot as a measure of hired labor.
 
 Hired labor is recorded as male labor days, female labor days and child labor days. We do not include hired child labor days.
 
@@ -83,6 +75,16 @@ Make a hired men labor days and a hired women labor days variable.
 
 # Impute labor Outliers
 
+As part of cleaning the data we have to remove values of labor use that are too high and were possibly recalled incorretly. Palacios-Lopez et al. (2017) studied labor days used to complete certain farming activities in Nigeria and we will use the upper bounds in their study to bound our labor data. 
+
+Per Palacios-Lopez et al. (2017) in Food Policy, we cap individual labor day contributions per activity in the following ways:
+
+ 7 days * 13 weeks = 91 days for land preperation and planting
+ 7 days * 26 weeks = 182 days for weeding and other non-harvest activities
+ 7 days * 13 weeks = 91 days for harvesting
+
+We want to remove the observations outside the boundary and we will replace them with a missing value and impute them.
+
 Imputation replaces missing data with an estimate from the existing data. We use Predictive Mean Matching (PMM) imputation. We set out the steps taken in PMM imputation to provide context for the impute commands in Stata. 
 
 We estimate the missing data with a least squares regression. The variable with the missing observations is the dependent variable. For each missing observation we obtain an estimated observation. The estimate is matched to 5 non-missing observations in the dependent variable that are closest to the estimated value. One of the 5 close observations is randomly chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more details on the process of imputation with household survey data.
@@ -95,8 +97,6 @@ Summarize the labor variables we created and compare them to the caps we set out
 ```
 
 All variables except **women_days** has more labor days than the upper bound.
-
-We are going to change the outliers to missing. We use a command loop to save us time individually identifying and changing outliers.
 	
 Create a local for the labor variables that contain outliers.
 

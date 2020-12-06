@@ -4,17 +4,19 @@
 % `s c(current_date)`
 
 
-To prepare the fertilizer input data we are going to identify the types of fertilizers being used, identify where fertilizer was obtained from, create a total fertilizer used variable, and impute outliers.
+Fertilizer is a somewhat broad category of soil nutrient boosting inputs. Manure and store bought commercial fertilizer are both recorded in the survey as a type of fertilizer. We do not consider manure to be a fertilizer because we cannot accurately measure the amount of manure used because it is rarely accurately measured before being used. A production function is less sensitive if we include an input that did not have accurate weights. So we drop all observations that mention manure as a fertilizer. 
 
-Open "sect11d_plantingw2.dta" from the Nigeria General Household Survey, Panel 2012-2013, Wave 2 using the appropriate file path based on the location of the raw data.
+Our technique to clean fertilizer will be to identify the types of fertilizers being used and drop manure, identify where fertilizer was obtained, create a total fertilizer used variable, and impute outliers.
+
+Open "sect11d_plantingw2.dta" from the Nigeria General Household Survey, Panel 2012-2013, Wave 2 using the appropriate file path based on the location of the raw data. This file relates to the survey taken after the planting season but before the harvest season.
 
 ```{s}
 	use				"$root\wave_2\raw\sect11d_plantingw2.dta", clear
 ```
 
-`Describe` the data will display the variables' names and the data labels. The variables are named with reference to the survey instrument, the section and question number that they were asked in the survey. You may have to find the instrument on the World Bank website to figure out exactly what the variable measures.
+`Describe` the data will display the variables' names and the data labels. The variables names are somewhat obtuse because they are named with reference to the survey instrument, namely what section and order the question appears in the survey. The name is used to look up the question in the survey and read exactly how the question was asked to the respondent.
 
-We have used the `quietly` command to suppress stata from displaying output. You do not have to include the quietly command. We have included it to make the guide more user friendly and not filled with stata output.
+Take notice, we use the `quietly` command in front of most of our commands because we want to suppress stata from displaying output. We include `quietly` to make our guide look user friendly. We recommend you do not include the 'quietly' command so you can see the output. 
 
 	
 ```{s}
@@ -23,26 +25,31 @@ We have used the `quietly` command to suppress stata from displaying output. You
 	
 ```
 
-The data is at the household and plot level. For example at the plot level, **s11dq1** "have you used any fertilizer on the plot?" and **s11dq4** "how much fertilizer did you use on the plot?" At the household level, **s11dq30b** "what was the main mode of transport for bought fertilizer?" 
-
-Each row in the data can be identified at the household-plot level. Verify this using `isid` and the variables we suspect uniquely identify the data. `Isid` will not return an output if the variables we suspect do uniquely identify the data and an error code will be displayed if the data is not identified in the way we suspect. 
+The data is identified at the household-plot level, meaning that each observation, which is made of a row, can be identified by the household and then the plot. Verify this using `isid` and the variables we suspect uniquely identify the data. `Isid` will not return an output if the variables we suspect do uniquely identify the data, likewise an error code will be displayed if the data is not identified in the way we suspect. 
 
 ```{s}
 
 	sort			hhid plotid 
 	isid			hhid plotid
 ```	
+
+Although all observations can be identified with household-plot, the data is at both the household and plot level depending on the variable. For example at the plot level are **s11dq1** "have you used any fertilizer on the plot?" and **s11dq4** "how much fertilizer did you use on the plot?" A few of the variables at the household level are **s11dq30b** "what was the main mode of transport for bought fertilizer?" Be aware of the level of observation you want to use when making variables. You will have to aggregate your variable if you want a household level but the data is at the plot level.  
+
 	
-Which farmers used fertilizer at all? **s11dq1** is a binary if any fertilizer was used at all.
+At the household level consider how many farmers used any fertilizer at all? **s11dq1** is a binary if any fertilizer was used at all.
 
 ```{s}
 	rename			s11dq1 fert_any
 	lab var			fert_any "=1 if any fertilizer was used"
 ```
 
-We do not consider manure to be a fertilizer because we cannot accurately measure the amount of manure used because it is rarely measured before use. Our production function would be less sensitive if we used an input variable that did not have accurate weights. So we drop all observations that mention manure as a fertilizer.
+Fertilizer use is relatively limited across the data, and it will become even more so when we remove manure.
 
-We want to replace manure obsevations with missing in the following variables that are important for constructing the total fertilizer at the end:
+
+
+We want to replace manure obsevations with missing. The variable that identifies the type of fertilizer is not the same as the variable that identifies the amount of fertilizer used. We identify manure observations for removal in the quantity variables by looking at the identifier variables. 
+
+The identifier variables:
 
 . **s11dq3**             	WHAT IS THE MAIN TYPE OF LEFT OVER FERTILIZED USED ON [PLOT]?
 . **s11dq7**            	WHAT IS THE TYPE OF THE FERTILIZER YOU USED MOST?
@@ -68,69 +75,69 @@ Responses are encoded in the data with numbers and not words as it appears in th
 	drop if			s11dq15 == 3
 	drop if			s11dq27 == 3
 ```
-We dropped 156 observations relating to manure.
+We dropped 156 observations relating to manure. 
 	
 # Quantity of Fertilizer Obtained from Different Sources
 
-The quantities are in kg's.
+The fertilizer quantities are in kg's and the variables containing the amounts are organized by their source of acquisition. Let's rename the variables relating to fertilizer quantity.
 
 Leftover fertilizer is **s11dq4**.
 
 ```{s}
 
-	gen				leftover_fert_kg = s11dq4
+	rename				s11dq4 leftover_fert_kg
 ```
 
-What is the distribution?
+What is the distribution of leftover fertilizer?
 
 ```{s}
 	sum				leftover_fert_kg
 ```
-Missing values are put in when the respondent did not use leftover fertilizer. Change the missing to 0.
 
+Missing values are put in when the respondent did not use leftover fertilizer. There are a lot of missing values which we should chane into 0's. We should not leave them as missing because we cannot perform summary statistics or mathematical operations on missing observations.
 
 ```{s}
 	
 	replace			leftover_fert_kg = 0 if leftover_fert_kg ==.
 ```
 
-Free fertilizer is **s11dq8**.
+Free fertilizer is **s11dq8** and it is a fertilizer respondents received for free.
 
 ```{s}
-	gen				free_fert_kg = s11dq8
+	rename			s11dq8	free_fert_kg
 ```
 
-What is the distribution?
+Again, what is the distribution?
 
 ```{s}
 
 	sum				free_fert_kg
 ```
-Missing values are put in when the respondent did not use leftover fertilizer. Change the missing to 0.
+As before let's change the missing to 0.
 
 ```{s}
 
 	replace			free_fert_kg = 0 if free_fert_kg ==. 
 ```
 
-Respondents classified purchased fertilizers by their sources, and there is the option to have received fertilizer from up to two sources. Subsequently we call them purchased fertilizer's 1 and 2. But which one you call 1 or 2 is unimportant.
+Respondents were given the option to record purchased fertilizer from up two sources. Subsequently we call them purchased fertilizer's 1 and 2. But which one you call 1 or 2 is unimportant.
 
 Purchased fertilizer is **s11dq16**.
 
 ```{s}
 
-	gen				purchased_fert_kg1 = s11dq16
+	rename			s11dq16	purchased_fert_kg1
 ```
 What is the distribution?
 ```{s}
 
 	sum				purchased_fert_kg1
 ```
-We find the max value to be unreasonably high for purchased fertilizer. This is based on how much the max differs from the mean. Later we shall remove it and impute the missing value.
+We find the max value to be unreasonably high for purchased fertilizer. This is based on how many standard deviations the max differs from the mean. Later we shall replace the high values as missing and impute them.
 
 ```{s}
 
-	gen				purchased_fert_kg2 = s11dq28
+	rename			s11dq28	purchased_fert_kg2
 ```
 
 What is the distribution?
@@ -140,7 +147,7 @@ What is the distribution?
 	sum				purchased_fert_kg2
 ```
 
-Replace the missing observations with 0's.
+As with other sources we shoudl replace the missing observations with 0's.
 
 ```{s}
 	
@@ -148,7 +155,7 @@ Replace the missing observations with 0's.
 	replace			purchased_fert_kg2 = 0 if purchased_fert_kg2 ==. 
 ```
 
-Combine all the fertilizer from the different sources.
+Finally we can make a single fertilizer variable that is the combination of all the fertilizers from the different sources.
 
 ```{s}
 	egen			fert_use = rsum (leftover_fert_kg purchased_fert_kg1 purchased_fert_kg2) 
