@@ -75,11 +75,14 @@ Responses are encoded in the data with numbers and not words as it appears in th
 	drop if			s11dq15 == 3
 	drop if			s11dq27 == 3
 ```
-We dropped 156 observations relating to manure. 
 	
 # Quantity of Fertilizer Obtained from Different Sources
 
-The fertilizer quantities are in kg's and the variables containing the amounts are organized by their source of acquisition. Let's rename the variables relating to fertilizer quantity.
+There is no one variable summarizing total fertilizer used on the plot. The fertilizer is instead organized by the kilograms of fertilizer from a particular source. Fertilizer is obtained for free, what was leftover from last season, and what was purchased. We are not interested in the source, we are interested in the total amount of fertilizer used on the plot. 
+
+The fertilizer quantities are already in kg's, so we do not have to convert them to kg's. 
+
+Let's rename the fertilizer variables with names in a way we can understand.
 
 Leftover fertilizer is **s11dq4**.
 
@@ -101,15 +104,10 @@ Missing values are put in when the respondent did not use leftover fertilizer. T
 	replace			leftover_fert_kg = 0 if leftover_fert_kg ==.
 ```
 
-Free fertilizer is **s11dq8** and it is a fertilizer respondents received for free.
+Continue renaming the other fertilizer variables and checking their distribution.
 
 ```{s}
 	rename			s11dq8	free_fert_kg
-```
-
-Again, what is the distribution?
-
-```{s}
 
 	sum				free_fert_kg
 ```
@@ -120,7 +118,7 @@ As before let's change the missing to 0.
 	replace			free_fert_kg = 0 if free_fert_kg ==. 
 ```
 
-Respondents were given the option to record purchased fertilizer from up two sources. Subsequently we call them purchased fertilizer's 1 and 2. But which one you call 1 or 2 is unimportant.
+Respondents were given the option to record purchased fertilizer from up two sources. Subsequently we call them purchased fertilizer's 1 and 2 - which one you call 1 or 2 is unimportant.
 
 Purchased fertilizer is **s11dq16**.
 
@@ -133,7 +131,7 @@ What is the distribution?
 
 	sum				purchased_fert_kg1
 ```
-We find the max value to be unreasonably high for purchased fertilizer. This is based on how many standard deviations the max differs from the mean. Later we shall replace the high values as missing and impute them.
+We find the max value to be unreasonably high for purchased fertilizer. This is based on how many standard deviations the max differs from the mean. Later we shall replace the high values as missing and impute them, for now continue renaming fertilizer and replacing the missing to zeros.
 
 ```{s}
 
@@ -145,46 +143,42 @@ What is the distribution?
 ```{s}
 
 	sum				purchased_fert_kg2
-```
-
-As with other sources we shoudl replace the missing observations with 0's.
-
-```{s}
 	
 	replace			purchased_fert_kg1 = 0 if purchased_fert_kg1 ==. 
 	replace			purchased_fert_kg2 = 0 if purchased_fert_kg2 ==. 
 ```
 
-Finally we can make a single fertilizer variable that is the combination of all the fertilizers from the different sources.
+Finally, we can make a single fertilizer variable that is the combination of all the fertilizers from the different sources.
 
 ```{s}
 	egen			fert_use = rsum (leftover_fert_kg purchased_fert_kg1 purchased_fert_kg2) 
 	lab var			fert_use "fertilizer use (kg)"
 ```
 
-What is the distribution?
+# Impute the Missing Observations
+
+What is the distribution of our `fert_use`?
 
 ```{s}
 
 	sum				fert_use, detail
 ```
 
-The max is quite high.
+The max is quite high. The max is so unusually large that we believe it represents an error in recall or recording. Rather than remove the large outliers we are going to replace them with missing and then we are going to impute them, imputing is a process to recover the missing data by projecting likely values using the reliable parts of the existing data. 
 
-Replace with missing, all observations that are 3 standard deviations above the mean. This is in line with Chebychev's theorem that over 88% of the data falls within 3 standard deviations of the mean, so observations very far out are more unlikely to occur naturally and occur as a result of error of recall.
+We use Predictive Mean Matching (PMM) imputation, a particular approach to imputation. We set out the steps taken in PMM imputation to provide context for the impute commands in Stata. 
+
+We estimate the missing data with a least squares regression. The variable with the missing observations is the dependent variable. For each missing observation we obtain an estimated observation. The estimate is matched to 5 non-missing observations in the dependent variable that are closest to the estimated value. One of the 5 close observations is randomly chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more details on the process of imputation with household survey data.
+
+We'll walk through the practical steps. First, replace the data that is above 3 standard deviations above the mean. This is in line with Chebychev's theorem that over 88% of the data falls within 3 standard deviations of the mean, so observations very far out are more unlikely to occur naturally and occur as a result of error of recall.
 
 ```{s}
 	sum				fert_use, detail
 	replace			fert_use = . if fert_use > `r(p50)'+(3*`r(sd)')
 ```
 
-# Impute the Missing Observations
-
-Imputation replaces missing data with an estimate from the existing data. We use Predictive Mean Matching (PMM) imputation. We set out the steps taken in PMM imputation to provide context for the impute commands in Stata. 
-
-We estimate the missing data with a least squares regression. The variable with the missing observations is the dependent variable. For each missing observation we obtain an estimated observation. The estimate is matched to 5 non-missing observations in the dependent variable that are closest to the estimated value. One of the 5 close observations is randomly chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more details on the process of imputation with household survey data.
-
 `Mi` (multiple imputation) is the Stata command for imputing. Set the data structure as wide or long. Our data is wide because a unique observation is identified by a unique row.
+
 ```{s}
 
 	quietly mi set 			wide 	
@@ -239,17 +233,19 @@ Check for missing observations for **fert_use** and **fert_any**.
 
 We will want to find those missing observations and make sure they are missing correctly.
 
-Convert missing values of **fert_any** to "no".
+The household's that did not use fertilizer have 0 or missing values for **fert_use**. The binary for using any fertilizer, **fert_any**, is a binary where 2 is "no", so replace any missing **fert_any** observations to 2 if **fert_use** is missing or 0.
 
 ```{s}
 
-	replace			fert_any = 2 if fert_any == .
+	replace			fert_any = 2 if fert_use == . 
+	replace			fert_any = 2 if fert_use == 0
+
 ```	
 
 We want the data set to only have the variables we are interested in using so we should drop the ones we are not using. There are more variables we want to drop so we can use `keep` to keep the ones we want and drop everything else.
 
 ```{s}
-	keep 			hhid zone state lga sector hhid ea plotid fert_any fert_use tracked_obs
+	keep 			hhid zone state lga sector hhid ea plotid fert_any fert_use
 ```
 
 Save the file.

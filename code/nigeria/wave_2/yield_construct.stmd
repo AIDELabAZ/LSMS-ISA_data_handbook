@@ -228,11 +228,22 @@ Make an identifier variable **cropplot** that uniquely identifies a crop by the 
 	lab var			cropplot_id "unique crop-plot identifier"
 ```
 
+We also want to make an id variable to identify the plot by the household ID and the plot ID. There may be several crops planted on one plot so **plot_id** will not uniquely identify the observations in this dataset but it will be the variable we use to match other inputs that are at the plot level.
+
+```{s}
+	sort			hhid plotid 
+	egen			plot_id = group(hhid plotid)
+	lab var			plot_id "unique plot identifier"
+```
+
 Save the file we have been working on and save it in a seperate place to the orignal raw data.
 
 ```{s}
-	save "$root/wave_2/refined/secta3_harvestw2.dta", replace	
+	save "$root/wave_2/refined/ph_secta3.dta", replace	
 ```
+
+
+
 
 # Cleaning Land Area
 
@@ -534,7 +545,7 @@ Rename our main variable.
  Now open "secta3_harvestw2.dta" and merge the crop data with the plot data. We want to use "secta3_harvestw2.dta" as the master file because all crops were grown on plots but not all plots were used to grow crops. 
 
 ```{s}
-	use				"$root/wave_2/refined/secta3_harvestw2.dta", clear 
+	use				"$root/wave_2/refined/ph_secta3.dta", clear 
 ```
 	
 We made an id variable **cropplot_id** when working on "sect3a_harvestw2.dta" confirm that it uniquely identifies each observation with the `isid` command. Recall that when a variable uniquely identifies each observation `isid` will not display a result and when a variable fails to uniquely identify the observations `isid` will display an error.

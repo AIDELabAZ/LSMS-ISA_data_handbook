@@ -1,0 +1,332 @@
+% Generating Maize Yield (kg/ha) in Nigeria General Household Survey, Panel 2012-2013, Wave 2
+% Emil Kee-Tui 
+% `s c(current_date)`
+
+This is a guide to generating the maize yield variable (kilograms of maize per hectare) from the Nigeria General Household Survey, Panel 2012-2013, Wave 2 (Survey ID Number: NGA_2012_GHSP-W2_v02_M). The basic steps we take here are the same steps you could take to generate yield variables in other waves and for other crops. This guide includes the stata commands and the stata output but following the steps on your own is helpful. To use the same files we use in this guide download the Nigeria General Household Survey, Panel 2012-2013, Wave 2 (Survey ID Number: NGA_2012_GHSP-W2_v02_M) from the World Bank website's Central Data catalog - instructions are given below on how to find and download the files from the World Bank website.
+
+# Instructions on Downloading the Data from the World Bank Website
+
+To access the data from the World Bank website go the Central data catalog on the world bank website, then find the "filter by collection on the left hand side of the webpage" and select checkbox for the Living Standards Measurement Survey (LSMS) filter. LSMS surveys are catergorized alphabetically by country names and then chronologically by the year and wave of the survey. Browse the pages until you find the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013, select that. Under the heading there are four tabs called STUDY DESCRIPTION, DOCUMENTATION, DATA DESCRIPTION, and GET MICRODATA, click on the GET MICRODATA tab. You will be asked to log in with World Bank user profile, which if you do not already have a profile you will be redirected to creat one, follow the instructions to create a profile and then repeat the steps to find the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria. If you already have a profile you will be redirected to a form submission page where you must write in the box provided a brief description of the research project that will use the data, which once you have submitted you will be redirected to the data files that are available for download in SPSS, CSV, and STATA formats. To follow this guide select the STATA format. Once the download is complete open the compressed zip file "NGA_2012_GHSP-W2_v02_M_STATA", and navigate to Post Harvest Wave 2, Agriculture, and select the file sect3a_harvestw2.dta. Keep the raw data files and the cleaned data files separate so it is a good idea to duplicate sect3a_harvestw2 in another folder where you will work on it from there, this way you can always refer to the original raw data file in the original NGA_2012_GHSP-W2_v02_M_STATA file if you need to.
+
+```{s}
+
+use "$root/wave_2/raw/secta3_harvestw2.dta", clear 
+
+```
+
+This data was collected after the main harvest and is at the crop level, meaning respondents were asked questions about each crop they planted, such as how much they harvested, if it was sold and how much it was worth, the plot it was grown on, etc.
+
+There are many different types of crops in this file, but we only need maize. `tab` will display the different types of crops.
+
+We have used the `quietly` command to suppress stata from displaying output. You do not have to include the quietly command. We have included it to make the guide more user friendly and not filled with stata output.
+
+```{s}
+quietly tabulate cropcode
+```
+
+Note that the names of the crops are displayed as words in the output table but they are stored as integers in the data. Maize is encoded as 1080 in **cropcode**.
+
+We want to restrict our observations to a single harvest season. Although this data was collected after the main harvest some households might not have harvested when the enumerators conducted their surveys. Remove those households from the sample that did not harvest because it was not harvest season or they delayed their harvest and will harvest in another season. But keep the households that did not harvest because their crop failed for one reason or another. We can identify households that did not harvest this season for a reason besides crop failure using **sa3q3** which records the response to the question "Have you harvested any of the following crops since the last interview?" The variable is coded to be matched to the survey instrument if you want to see how the question was actually given to respondents you can check the survey instrument. But to make the variable clearer for ourselves rename **sa3q3** to **harvest**:
+
+```{s}
+	rename sa3q3 harvest
+```
+
+Note, **sa3q4** records the reason that a household failed to harvest. Use `tabulate` to list the reasons households failed to harvest.
+
+```{s}
+	quietly tab sa3q4
+```
+
+Stata displays the reasons for failing to harvest as whole sentences in the output but each reason is stored in the data as integers and when we write code we have to use the integer. Find the integer code of a response using the data browser and find **sa3q4**. The cells still appear to show words for each reason but select a cell and notice that the text bar above the cell matrix displays an integer - this integer is what we write in our code. 
+
+Sort the data on **sa3q4** to put the responses in ascending order so its easier to find a numbered response.
+
+```{s}
+	sort sa3q4
+```
+
+Identify the integer code for not harvesting because it was "not harvest season", "delayed harvest" and "other specify". 
+
+Drop observations if they did not harvest because it was not harvest season, the harvest was delayed, and other non-specified reasons which should be encoded as 9, 10, and 11 respectively. We can combine these qualifiers into a single command using an "or" statement, note that stata reads the vertical line symbol “|” as an “or”.
+
+```{s}
+	quietly 	drop if 		sa3q4 == 9 | sa3q4 == 10 | sa3q4 == 11
+```
+	
+The remaining households that did not harvest may have a missing harvest quantity and value. Make sure the remaining households that did not harvest have a 0 for the quantity and value of their harvest. Quantity is **sa3q6a1** and value is **sa3q18**.
+
+```{s}
+	replace			sa3q6a1 = 0 if sa3q6a1 == . & sa3q4 < 9
+	replace			sa3q18  = 0 if sa3q18  == . & sa3q4 < 9
+```
+
+Many respondents in all three waves of the Nigeria survey gave the weights of their harvests in local units and not in standardized units. We ultimately want to produce a variable that is the maize yield measured in kilograms of maize per hectare and we will need to convert the non-standard units into kilograms. Rename **sa3q6a2** to **nscode**. Note that harvest units have been encoded in the data.
+
+```{s}
+	rename 			sa3q6a2 nscode
+```
+
+# Converting Harvest Weights to Kilograms
+
+We will convert non-standard units into kilograms by merging the current dataset with "harvconv_wave_2.dta" which contains a numerical conversion factor to convert each crop and non-standard measurement to the equivalent measurement in kilograms. 
+
+The non-standard units are a challenge to convert because some of the units are measured by volume such wheelbarrows and sacks. Sacks and wheelbarrows are not standard volumes either and they vary by the brand of the sack or wheelbarrow and possibly by region and the weight of a wheelbarrow of melons is not the same as the weight of a wheelbarrow of maize and so the conversion will be approximate and not perfect. 
+
+Before merging keep in mind all crops of the same type when measured with the same units will share the same conversion factor. In matching more than one oberservation from the main dataset to one observation in the merging dataset the merge is called a many to one merge. Keep "ph_secta3.dta" open and merge "harvconv_wave_2.dta" on **cropcode** and **nscode** and specify the type of merge is m:1, many to one.
+
+```{s}
+ merge 			m:1 cropcode nscode using "$root/wave_2/raw/w2agnsconversion.dta"
+```
+
+After a merge command Stata automatically produces a variable called **_merge** that it is encoded as **_merge**==3 if an observation from the "master" (the main file secta3_harvestw2.dta) was matched to an observation from the "using" (the conversion file). **_merge**==1 if an observation from the master file was unable to be matched to an observation in the using, this means a crop is measured by a unit we do not have a conversion. And **_merge**==2 if an observation from the using file was not matched to the master, this means the using file contained a crop and a unit of measurement that is not present in the main data, which is a conversion we do not need. Drop the observations we don't need.
+
+```{s}
+	drop if			_merge == 2
+```
+
+Lets address the observations that are missing a conversion. A likely culprit for an unmatched observation is a missing **nscode** or **cropcode**. Check for missing **nscode** by asking stata to count the observations with missing **nscode**,(==.), and a **_merge**==1.
+
+```{s}
+	count if 		nscode==. & _merge == 1
+```
+
+Drop those observations that are missing an **nscode** because we cannot convert those observations without the unit.
+
+```{s}
+	drop if 		nscode == . & _merge == 1
+```
+
+An observation can go unmatched if the conversion file did not have a conversion for a unit in the master. Tabulate **nscode** for the unmatched observations to check if something was omitted.
+
+```{s}
+	tab 			nscode if _merge == 1
+```
+
+If an umatched observation is already in kilograms, or grams or a unit you know how to convert to kiligrams then we can keep those observations. We need to replace the **conversion** for those observations with the conversion factor. For example replace the missing conversion for kilograms to 1. **nscode** is encoded and we must sort the data on **nscode** and look up the code for kilograms in the data browser. But to save you time kilograms are encoded 1. 
+
+```{s}
+	replace			conversion = 1 if conversion == . & nscode==1
+```
+
+We drop an observation if the harvest unit cannot be converted. Note in Stata “!=” is equivalent to the statement “not equal to”.
+
+```{s}
+	drop if			_merge == 1 & nscode != 1
+```
+
+We can now drop the **_merge** variable.
+
+```{s}
+	drop 			_merge
+```
+
+Check for missing **conversion** factor.
+
+```{s}
+	count if		conversion == .
+```
+
+Generate **harv_kg** by multiplying the conversion factors with the nonstandard weights.
+
+```{s}
+	generate			harv_kg = sa3q6a1*conversion
+```
+	
+Several types of maize varieties were grown and we want to make it easier by recoding them all as one type of maize. Sort **cropcode** and then look in the data browser to find the codes for the different types of maize. Note that all types of maize are encoded between 1080 and 1084 and generic maize is 1080. Replace all maize with 1080.
+
+```{s}
+	replace			cropcode = 1080 if cropcode > 1079 & cropcode < 1084
+```
+
+Make a maize harvest variable called **mz_hrv** for all the maize crop weights. All non-maize observations will be missing in the variable **mz_hrv**.
+
+```{s}
+	gen 			mz_hrv = harv_kg 	if 	cropcode == 1080
+	lab var			mz_hrv "Quantity of maize harvested (kg)"
+```
+
+# Imputing Far Outliers
+
+Imputation replaces missing data with an estimate from the existing data. We use Predictive Mean Matching (PMM) imputation. We set out the steps taken in PMM imputation to provide context for the impute commands in Stata. 
+
+We estimate the missing data with a least squares regression. The variable with the missing observations is the dependent variable. For each missing observation we obtain an estimated observation. The estimate is matched to 5 non-missing observations in the dependent variable that are closest to the estimated value. One of the 5 close observations is randomly chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more details on the process of imputation with household survey data.
+
+`Summarize` **mz_hrv** for the mean, maximum, minimum and other statistics. 
+
+```{s}
+	sum				mz_hrv, detail
+```
+
+Compare the summary statistics to reliable crop yield data from the area of study and determine if our data appears at first glance to be reasonable in the context of the region we are studying. 
+
+You may use your discretion in choosing how to identify outliers and be consistent to your identification throughout your data cleaning process. We consider an outlier to be an observation that is above 3 standard deviations above the mean. The stata code for 3 standard deviations above the mean is `r(p50)' + (3*`r(sd)') where `r(p50)' is the mean and `r(sd)' is the standard deviation and 3*`r(sd)' is 3 times the standard deviation. Replace observations that are outside of the 3 standard deviations as missing.
+
+```{s}
+replace			mz_hrv = .  	if 	mz_hrv > `r(p50)' + (3*`r(sd)')
+```
+
+`Mi` (multiple imputation) is the Stata command for imputing. Set the data structure as wide or long. Our data is wide because a unique observation is identified by a unique row.
+
+```{s}
+	quietly mi set 			wide 
+```
+Clear any time series settings you may have in place or else the time series will interfere with the linear regression we run later.
+
+```{s}
+	quietly mi xtset		, clear 	
+```
+	
+Register **mz_hrv** as the variable we will be imputing.
+
+```{s}
+	quietly mi register		imputed mz_hrv 
+```
+
+Sort the data to ensure reproducibility. Sorting the data can be done at any stage before the actual imputation. Data is uniquely identified by **hhid** **plotid** **cropid**. 
+
+
+```{s}
+	sort			hhid plotid cropid 
+```
+
+And finally imputing. Since imputing is a process of estimation it is natural that we should specify the estimation similar to setting up a simple regression. Impute with the fertilizer variable as the dependent variables and state, the variable for the geographic state location of the observation, as the independent variable. 
+
+Use predictive mean matching (pmm) to impute the data, the regression’s dependent variable is **mz_hrv** and the independent variable is **i.state** (a dummy for each state). Set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing **mz_hrv** observations to match to the estimate, for example we choose to match to the nearest 5 observations; "bootstrap" requests Stata sample the data with replacement and regress on the created random sample; "rseed(#)" specifies the random number seed used to create the sample. 
+	
+```{s}	
+	quietly mi impute pmm mz_hrv i.state if cropcode == 1080, add(1) rseed(245780) noisily dots force knn(5) bootstrap
+```
+
+Declare the imputing to be over:
+
+```{s}
+	quietly mi 				unset	
+```
+	
+Use `tabstat` to compare the imputed maize harvest variable (**mz_hrv_1_**) to the original maize harvest variable (**mz_hrv**). `tabstat` compares two or more variables on the parameters of our choice, for example we want to see the number of observations in each variable “n”, the mean, “mean”, and the minimum and the maximum, “min” and “max”.
+
+```{s}
+	quietly tabstat			mz_hrv mz_hrv_1_ if cropcode == 1080, by(mi_miss) statistics(n mean min max) columns(statistics) longstub format(%9.3g) 
+```
+
+If after imputation the data resembles the known distribution of maize yields in Nigeria then replace the original maize harvest (**mz_hrv**) with the imputed maize harvest (**mz_hrv_1**) and drop the imputed maize harvest. If the results are still not resembling known distributions then you can start by reducing the distribution you tolerate and replace more missing values based on the new outlier boundaries, then impute the missing data. We continue assuming we are satisfied with our first attempt.
+
+```{s}
+	replace			mz_hrv = mz_hrv_1_  if cropcode == 1080
+	drop			mz_hrv_1_
+```
+
+# Crop Value
+
+The variable **sa3q18** records the value of the sold crops in Naira. We will convert the value into real 2010 US dollars, we use 2010 as our base year to measure all waves in terms of 2010 value. Converting the value to USD allows us to compare the Nigerian data with the other countries and converting the value to real USD allows us to compare the 2012-2013 output to output from other waves.
+
+```{s}
+	gen 			vl_hrv = sa3q18
+```
+
+Converting Naira to USD, we use exchange rates available from the World Bank. In 190.4143545 Naira in 2012-2013 was worth 1 USD in 2010.
+
+```{s}
+	replace			vl_hrv = vl_hrv/190.4143545
+	lab var			vl_hrv 	"total value of harvest in 2010 USD"
+```
+
+We will want to remove the extreme values in the variable. A value that falls outside of 3 standard deviations of the median is considered to be an extremely high value. The extremely high values relative to the rest of the data is likely due to a mistake in recall or recording. We will replace those high values with missing then we will imput the missing values.
+
+Summarize in detail the distribution of **vl_hrv**.
+
+```{s}
+	sum				vl_hrv, detail
+```
+
+The max, 13,654, is much larger than the mean, 105, and median, 226. We can use the standard deviation of the variable stored in the short term memory to set the conditions for which values qualify to be replaced. We want to replace all observations outside of 3 standard deviations of the meadian.
+
+```{s}
+	replace			vl_hrv = . if vl_hrv > `r(p50)'+(3*`r(sd)')
+```
+
+We replaced 111 values and the max is now 1,054, which is not only within 3 standard deviations of the mean but is also a much more reasonable harvest value given the context.
+	
+Set the data structure as wide or long. Our data is wide because a unique observation is identified by a unique row.
+
+```{s}
+	quietly 		mi set 			wide 
+```
+Clear any time series settings you may have in place or else the time series will interfere with the linear regression we run later.
+
+```{s}
+	quietly mi xtset		, clear
+```
+Register **vl_hrv** as the variable we will be imputing.
+
+```{s}
+	quietly mi register		imputed vl_hrv
+```
+Sort the data to ensure reproducibility. Sorting the data can be done at any stage before the actual imputation. Data is uniquely identified by **hhid** **plotid** **cropid**. 
+
+```{s}
+	quietly sort			hhid plotid cropid, stable
+```
+
+And finally imputing. Since imputing is a process of estimation it is natural that we should specify the estimation similar to setting up a simple regression. Impute with the fertilizer variable as the dependent variables and state, the variable for the geographic state location of the observation, as the independent variable. 
+
+Use predictive mean matching (pmm) to impute the data, the regression’s dependent variable is **vl_hrv** and the independent variable is **i.state** (a dummy for each state). Set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing **vl_hrv** observations to match to the estimate, for example we choose to match to the nearest 5 observations; "bootstrap" requests Stata sample the data with replacement and regress on the created random sample; "rseed(#)" specifies the random number seed used to create the sample.
+
+```{s}
+	quietly mi impute 		pmm vl_hrv i.state i.cropid, add(1) rseed(245780) noisily dots force knn(5) bootstrap
+```
+
+Declare the imputing to be over:
+
+```{s}
+	quietly mi 				unset	
+```
+
+Use `tabstat` to compare the imputed maize harvest variable (**vl_hrv_1_**) to the original maize harvest variable (**vl_hrv**). `tabstat` compares two or more variables on the parameters of our choice, for example we want to see the number of observations in each variable “n”, the mean, “mean”, and the minimum and the maximum, “min” and “max”.
+
+```{s}
+	quietly tabstat			vl_hrv vl_hrv_1_, by(mi_miss) statistics(n mean min max) columns(statistics) longstub format(%9.3g) 
+```
+
+If after imputation the data resembles the known distribution of maize yields in Nigeria then replace the original maize harvest (**vl_hrv**) with the imputed maize harvest (**vl_hrv_1**) and drop the imputed maize harvest. If the results are still not resembling known distributions then you can start by reducing the distribution you tolerate and replace more missing values based on the new outlier boundaries, then impute the missing data. We continue assuming we are satisfied with our first attempt.
+
+```{s}
+	replace			vl_hrv = vl_hrv_1_
+	drop			vl_hrv_1_
+```
+
+We will also make a seperate value of harvest variable for maize.
+
+```{s}
+	gen 			mz_vl = vl_hrv if mz_hrv != . | mz_hrv != 0
+```
+
+Make an identifier variable **cropplot** that uniquely identifies a crop by the crop’s name, the plot it was grown on, and the household that grew it.  The Stata command `isid` checks a variable or list of variables uniquely identify our observations. Stata will not display a result after the `isid` command if the variables do uniquely identify our observations but will display an error if the variables do not uniquely our observations. 
+
+```{s}
+	isid			hhid plotid cropid
+	sort			hhid plotid cropid
+	egen			cropplot_id = group(hhid plotid cropid)
+	lab var			cropplot_id "unique crop-plot identifier"
+```
+
+We also want to make an id variable to identify the plot by the household ID and the plot ID. There may be several crops planted on one plot so **plot_id** will not uniquely identify the observations in this dataset but it will be the variable we use to match other inputs that are at the plot level.
+
+```{s}
+	sort			hhid plotid 
+	egen			plot_id = group(hhid plotid)
+	lab var			plot_id "unique plot identifier"
+```
+
+Keep all the variables we need and drop the extra variables we are not interested in using later.
+
+```{s}
+	keep zone state lga sector ea hhid plotid plot_id cropplot_id mz_vl harv_kg vl_hrv mz_hrv
+```
+
+Save the file we have been working on and save it in a seperate place to the orignal raw data.
+
+```{s}
+	save "$root/wave_2/refined/ph_secta3.dta", replace	
+```

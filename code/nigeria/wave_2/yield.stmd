@@ -1,0 +1,194 @@
+% Merging Datasets and generating inputs and outputs in hectare terms in Nigeria General Household Survey, Panel 2012-2013, Wave 2
+% Emil Kee-Tui 
+% `s c(current_date)`
+
+This chapter covers the procedures we undertook to merge all the cleaned data sets and then generate input and output variables in per hectare terms. For instance we will produce a variable for kilograms of maize produced per plot hectare and labor hours supplied per plot hectare.
+
+# Merge Datasets
+
+Before we can generate the per hectare variables we must merge all the cleaned files together into one dataset.
+
+We use crop output file "ph_secta3.dta" as the master file. The data in all the files is at the plot level. We match observations on household id and plot id. During merge, observations will match if they possess a household id and plot id that exactly matches a household id and plot id in the master file. Households and plot that did not grow anything will not be present in the crop id, therefore the observations that do not match are those without a crop output. 
+
+```{s}
+	use				"$root/wave_2/refined/ph_secta3.dta", clear 
+```
+	
+We made an id variable **cropplot_id** when working on "sect3a_harvestw2.dta" confirm that it uniquely identifies each observation with the `isid` command. Recall that when a variable uniquely identifies each observation `isid` will not display a result and when a variable fails to uniquely identify the observations `isid` will display an error.
+
+```{s}
+	isid			cropplot_id
+```
+	
+Merge in plot size data, "sect11a1_plantingw2.dta", and merge on ***hhid*** and ***plotid***. Multiple crops can be grown on one plot and multiple crops may be matched to the same plot, set the matching option to many to one (m:1). `generate(_11a1)` creates a variable called **_11a1** which tells us if an observation matched or failed to match. 
+
+```{s}
+	merge 			m:1 hhid plotid using "$root/wave_2/refined/sect11a1_plantingw2.dta", generate(_11a1)
+```
+	
+A failed match from the master occurs if a household id and plot id are present in the master and there is no equal household id and plot id in the using dataset. A failed match from the using occurs if a household id and plot id are present in the using dataset and not in the master dataset.
+
+Drop observations that did not match. Observations that did not match are plots that we cannot match to a crop or crops we cannot match to a plot and the only way to identify where a crop was grown or what crop was grown on a plot is the `merge` command we just executed so we cannot do much more. Recall all successful matches have **_11a1**=3. Note “!=” is equivalent to a "not equal" statement so let's use != to drop all observations not equal to 3.
+
+```{s}
+	drop			if _11a1 != 3
+```
+
+Merge the irrigation dataset, "pp_sect11b1.dta". Use the household id and the plot id for the match.
+```{s}
+	merge			m:1 hhid plotid using "$root/wave_2/refined/pp_sect11b1.dta", generate(_11b1)
+```
+
+A failed match from the master crop file implies that there was no irrigation match. We conclude that if there is no irrigation match to the plot then the plot did not have irrigation. Replace the **irr_any** response for the unmatched from master observations to '2' in order to show that those plots did not have irrigation.
+	
+```{s}
+	replace			irr_any = 2 if irr_any == . & _11b1 == 1
+```
+
+Drop the observations from the using that are unmerged since we want to limit our observations to the plots with crop data.
+
+```{s}
+	drop			if _11b1 == 2
+```
+	
+Merge in planting labor data, "pp_sect11c1.dta".
+
+```{s}
+	merge		m:1 hhid plotid using "$root/wave_2/refined/pp_sect11c1.dta", generate(_11c1)
+```
+
+Drop unmerged observations from the using since we cannot use labor that had no output. We will impute the missing labor in the unmerged from master observations.
+
+```{s}
+	drop			if _11c1 == 2
+```
+
+Merge in pesticide and herbicide use, "pp_sect11c2.dta".
+```{s}
+	merge		m:1 hhid plotid using "$root/wave_2/refined/pp_sect11c2.dta", generate(_11c2)
+```
+
+A failed match from the master crop file implies that there was no pesticide or herbicide match. We conclude that if there is no pesticide or herbicide match to the plot then the plot did not have pesticide or herbicide. Replace the **pest_any** and **herb_any** responses for the unmatched from master observations to '2' in order to show that those plots did not have pesticide or herbicide.
+
+```{s}
+	replace			pest_any = 2 if pest_any == . & _11c2 == 1
+	replace			herb_any = 2 if herb_any == . & _11c2 == 1
+```
+
+Drop the unmerged observations from the using dataset, those observations are plots we do not have cropping data on and therefore cannot use.
+
+```{s}
+	drop			if _11c2 == 2
+```
+
+Merge the fertilizer dataset, "pp_sect11d.dta".
+
+```{s}
+	merge		m:1 hhid plotid using "$root/wave_2/refined/pp_sect11d.dta", generate(_11d)
+```
+
+we will impute the missing values later
+	
+```{s}
+	drop			if _11d == 2
+```
+
+merging in harvest labor data.
+
+```{s}
+	merge		m:1 hhid plotid using "$root/wave_2/refined/ph_secta2.dta", generate(_a2)
+```
+
+As with the planting labor we will impute the unmerged from master later and drop the unmerged from using. 
+
+```{s}
+	drop			if _a2 == 2
+```
+
+Labor is organized by planting labor and harvest labor, add together the two labors to come up with a single labor input. 
+
+```{s}
+	gen 			labordays = hrv_labor + pp_labor
+	label var 		labordays "Total labor days used on plot"
+```
+
+Recode the binary variables so that 0 instead of '2' represents a 'no' response. Having a binary in 0 and 1 is useful for analysis, when a binary is an interactino variable a 0 closes the interaction, and a 1 switches on the interaction.
+
+```{s}
+	replace			fert_any = 0 if fert_any == 2
+	replace			pest_any = 0 if pest_any == 2
+	replace			herb_any = 0 if herb_any == 2
+	replace			irr_any  = 0 if irr_any  == 2
+```
+
+Maize is an important crop and we may want to consider maize inputs and maize output seperately from the other crops. We can create additional maize only variables. We can identify maize observations on all observations where maize harvest is non-missing.
+
+```{s}
+	gen				mz_lnd = plotsize	if mz_hrv != .
+	gen				mz_lab = labordays	if mz_hrv != .
+	gen				mz_frt = fert_use		if mz_hrv != .
+	gen				mz_pst = pest_any	if mz_hrv != .
+	gen				mz_hrb = herb_any	if mz_hrv != .
+	gen				mz_irr = irr_any	if mz_hrv != .
+```
+
+Our maize variables contain 0 values for all observations that are non-maize. We should replace them with missing value's so that non-maize observations are excluded from our maize calculations, recall missing observations are not considered during calculations. 
+
+Since there are multiple maize variables so we should make a local file with the maize variables and then on the local we will run a loop changing the missing variables to 0's.
+
+```{s}
+	local	mz			mz_lnd mz_lab mz_frt mz_pst mz_hrb mz_irr
+	foreach v of varlist `mz'{
+	    replace		`v' = . if mz_hrv == 0	
+	}	
+	replace			mz_hrv = . if mz_hrv == 0		
+```
+
+The data is currently at the crop level, `collapse` the data to the plot level. Before we collapse note currently there may be multiple entries for a single plot because the same plot may have matched with multiple crops and we want to condense multiple crop entries into a single entry that summarizes all the crop data for one plot. So we have to decide how to agglomerate multiple crops, in this case adding them together is best option. So we write the option (Sum) after "collapse" to get the total weight of maize harvested from the plot. Take the maximum value of the plot size, when multiple crops are on the same plot we do not want the total plot to be the sum of the same plot. Binaries should be collapsed with maximum. Labordays and outputs should be collapsed by summation.
+
+```{s}
+	collapse (sum) mz_vl vl_hrv harv_kg plotsize labordays fert_use mz_hrv mz_lnd mz_lab mz_frt (max) pest_any herb_any irr_any mz_pst mz_hrb mz_irr, by(hhid plotid plot_id zone state lga sector ea)
+```
+
+
+
+Construct maize yield (kg/ha).
+
+```{s}
+	gen			mz_yld = mz_hrv / mz_lnd
+	lab var		mz_yld	"maize yield (kg/ha)"
+```
+
+Maize value (USD/ha)
+```{s}
+	gen 		mz_value = mz_vl / mz_lnd
+	lab var 	mz_value "maize value (USD/ha)"
+```
+
+crop yield (kg/ha)
+
+```{s}
+	gen 		tf_yld = harv_kg / plotsize
+	label var   tf_yld "total yield (kg/ha)"
+```
+
+crop value (USD/ha)
+```{s}
+	gen 		tf_value = vl_hrv/plotsize if mz_hrv != .
+	label var 	tf_value "total value of harvest (USD/ha)"
+```
+
+
+We want the data set to only have the variables we are interested in using so we should drop the ones we are not using. There are more variables we want to drop so we can use `keep` to keep the ones we want and drop everything else.
+
+			
+Save the file.
+
+```{s}
+	save "$root/wave_2/refined/secta3_harvestw2.dta", replace	
+```
+
+	
+# Citations
+
+Kilic, T., Zezza, A., Carletto, C., & Savastano, S. (2017). Missing (ness) in action: selectivity bias in GPS-based land area measurements. World Development, 92, 143-157.
