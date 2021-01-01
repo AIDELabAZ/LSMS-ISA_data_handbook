@@ -1,7 +1,25 @@
 # lsms-isa_data_handbook
-LSMS-ISA Processed Dataset Construction and Documentation
+## LSMS-ISA Processed Dataset Construction and Documentation
 
-This is a guide to generating the maize yield variable (kilograms of maize per hectare) from the Nigeria General Household Survey, Panel 2012-2013, Wave 2 (Survey ID Number: NGA_2012_GHSP-W2_v02_M). The basic steps we take here are the same steps you could take to generate yield variables in other waves and for other crops. This guide includes the stata commands but not the stata output. It is helpful to replicate the code yourself so you can see the output copying the code yourself and  the steps on your own is helpful. To use the same files we use in this guide download the Nigeria General Household Survey, Panel 2012-2013, Wave 2 (Survey ID Number: NGA_2012_GHSP-W2_v02_M) from the World Bank website's Central Data catalog - instructions are given below on how to find and download the files from the World Bank website.
+The data handbook is an annotated code book about the steps to clean the LSMS-ISA data and make a household agricultural production dataset. The ag production dataset is designed to estimate agricultural production functions at the household level. We created 6 preliminary guide documents detailing the making of agricultural inputs and outputs datasets, these are the area cultivated, the crop output value and weight, irrigation, pesticide and herbicide, fertilizer and labor. A final file explains how to combine the preliminary documents and make a dataset ready to estimate yield production functions.
+
+##  Getting Started: Setting Up A Dev Environment
+
+### Steps:
+
+1. Download a local copy of the code (clone the repository)
+   
+  Open Github desktop. From the file drop down menu select `clone repository...`. In the `clone repository` menu select the `URL` tab and paste this url or the username/repository_name in the textbox.
+  
+   ```sh 
+  https://github.com/jdavidm/lsms-isa_data_handbook or jdavidm/lsms-isa_data_handbook
+   ```
+  
+
+  
+   git clone git@github.com:EvansSchoolPolicyAnalysisAndResearch/375-AgQuery.git
+   ```
+We combine the preliminary documents  The (kilograms of maize per hectare) from the Nigeria General Household Survey, Panel 2012-2013, Wave 2 (Survey ID Number: NGA_2012_GHSP-W2_v02_M). The basic steps we take here are the same steps you could take to generate yield variables in other waves and for other crops. This guide includes the stata commands but not the stata output. It is helpful to replicate the code yourself so you can see the output copying the code yourself and  the steps on your own is helpful. To use the same files we use in this guide download the Nigeria General Household Survey, Panel 2012-2013, Wave 2 (Survey ID Number: NGA_2012_GHSP-W2_v02_M) from the World Bank website's Central Data catalog - instructions are given below on how to find and download the files from the World Bank website.
 
 # Instructions on Downloading the Data from the World Bank Website
 
