@@ -27,24 +27,49 @@
 * 1 - build handbook
 * **********************************************************************
 
-* compile nigeria handbook documents		
-*markstat using "$hndk/wave_2/yield_construct", docx
+* compile nigeria handbook documents	
 
-markstat using "$hndk/wave_2/yield", docx
+* **********************************************************************
+*Yield
+* **********************************************************************
 
+	*markstat using "$hndk/wave_2/yield", docx
 
-	
+* **********************************************************************
+*area_construct
+* **********************************************************************
+
 	*markstat using "$hndk/wave_2/area_construct", docx
 	
-		*markstat using "$hndk/wave_2/fertilizer", docx
-		
-			*markstat using "$hndk/wave_2/other_inputs_pest_irr", docx
-	
-				*markstat using "$hndk/wave_2/crop_output", docx
+* **********************************************************************
+*fertilizer
+* **********************************************************************
 
+	*markstat using "$hndk/wave_2/fertilizer", docx
+
+* **********************************************************************
+*other_inputs_pest_irr
+* **********************************************************************
+
+	*markstat using "$hndk/wave_2/other_inputs_pest_irr", docx
+	
+* **********************************************************************	
+* crop_output
+* **********************************************************************
+
+	*markstat using "$hndk/wave_2/crop_output", docx
+	
+* **********************************************************************
+*planting_labor
+* **********************************************************************
+	
 	*markstat using "$hndk/wave_2/planting_labor", docx
 	
-		*markstat using "$hndk/wave_2/harvest_labor", docx
+* **********************************************************************	
+*harvest_labor
+* **********************************************************************
+
+	*markstat using "$hndk/wave_2/harvest_labor", docx
 
 
 
