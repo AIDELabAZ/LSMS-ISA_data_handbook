@@ -3,11 +3,11 @@
 
 The data handbook is an annotated code book listing and explaining the procedures used to clean and prepare the LSMS-ISA data and make a household agricultural production dataset. The ag production dataset is designed to estimate agricultural production functions at the household level. There are 6 preliminary guide documents on the making of datasets for fertilizer, harvest labor, planting labor, crop output, pesticide-herbicide-fungicide-irrigation, and land area. There is a final file called "yield" which combines the preliminary datasets to make a dataset ready to estimate yield production functions.
 
-The guide documents can be read with stata or Microsoft word. When using stata you will see the stata code and the explanations. Using microsoft word you will see the stata code, the explanations, the stata output, and easier to read user-friendly interface. We recommend reading the documents with microsoft word. You must follow our steps to compile the word documents.
+The guide documents can be read with stata or Microsoft word. Stata will display the stata code and the explanations. Microsoft word format will display the stata code, the explanations, the stata output, and a user-friendly interface. We recommend reading the documents with microsoft word. You must follow our steps to compile the word documents.
 
 ##  Getting Started: Setting Up A Dev Environment
 
-The code runs when the raw and cleaned data exist in a specific file structure which is created after running the "project.do" which is available from the git repository. The steps below will demonstrate how to get the project.do, set up the dev environment, get the raw data.
+The file "nigeria_handbook.do" compiles the .stmd handbook documents into microsoft word. Before we run "nigeria_handbook.do" we must duplicate the git repository on our local computer, install pandoc, move the raw The code runs when the raw and cleaned data exist in a specific file structure which is created after running the "project.do" which is available from the git repository. The steps below will demonstrate how to get the project.do, set up the dev environment, get the raw data.
 
 ### Steps:
 
