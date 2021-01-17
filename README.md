@@ -3,30 +3,30 @@
 
 The data handbook is an annotated code book listing and explaining the procedures used to clean and prepare the LSMS-ISA data and make a household agricultural production dataset. The ag production dataset is designed to estimate agricultural production functions at the household level. There are 6 preliminary guide documents on the making of datasets for fertilizer, harvest labor, planting labor, crop output, pesticide-herbicide-fungicide-irrigation, and land area. There is a final file called "yield" which combines the preliminary datasets to make a dataset ready to estimate yield production functions.
 
-The guide documents can be read with stata or Microsoft word. Stata will display the stata code and the explanations. Microsoft word format will display the stata code, the explanations, the stata output, and a user-friendly interface. We recommend reading the documents with microsoft word. You must follow our steps to compile the word documents.
+This guide combines the code, the explanations of the code, and the output in a single file. The user generates the guide by running a stata do file that runs the code on the data and compiles the results and the explanations into a single document. To compile the guide please follow the steps below.
 
 ##  Getting Started: Setting Up A Dev Environment
 
-The file "nigeria_handbook.do" compiles the .stmd handbook documents into microsoft word. Before we run "nigeria_handbook.do" we must duplicate the git repository on our local computer, install pandoc, move the raw The code runs when the raw and cleaned data exist in a specific file structure which is created after running the "project.do" which is available from the git repository. The steps below will demonstrate how to get the project.do, set up the dev environment, get the raw data.
+The git repository contains the guide document code, "nigeria_handbook.do" for compiling the guide documents, and a "project.do" to set the file path for "nigeria_handbook.do" and the raw data from the World Bank. Before we run "nigeria_handbook.do" we must duplicate the git repository on our local computer and set up the empty files that will contain the raw data.
 
 ### Steps:
 
-1. Download and install pandoc at https://pandoc.org/installing.html. We use pandoc to compile the code into a word document.
-
-2. Download a local copy of the code (clone the repository)
+1. Download a local copy of the code (clone the repository)
    
-  Open Github desktop. From the file drop down menu select `clone repository...`. In the `clone repository` menu select the `URL` tab and paste this url or the username/repository_name in the textbox.
+  Open Github desktop. From the file drop down menu select `clone repository...`. In the `clone repository` menu select the `URL` tab and paste and this url or username/repository_name in the box.
   
    ```sh 
   https://github.com/jdavidm/lsms-isa_data_handbook or jdavidm/lsms-isa_data_handbook
    ```
- 3. Open the project.do
- 
-   Find on your local drive the "git" folder such as "\user\git\lsms-isa_data_handbook\projectdo.do". Open the "lsms-isa_data_handbook" in the git folder. Open "project.do" in stata.
+   After the repository has been located select the `clone repository` button.
    
- 4. Edit the project.do
+ 2. Open the project.do
  
-   The "project.do" will create a set of files on your local computer where you will store the raw data and where the clean data will be stored. You will have to change the location/user portion of the project.do code. These edits are specific to the user and will allow the do file to create the project files in your local computer.
+   Locate on your local drive the "git" folder that contains the "lsms-isa_data_handbook" file. Within the "lsms-isa_data_handbook" in the "git" folder is "project.do" - which you must open.
+   
+ 3. Edit the project.do
+ 
+   The "project.do" creates a set of files on your local computer to store the raw datasets and the cleaned dataset. We will walk through some steps you must take to edit the "project.do" to work with your unique local username. You will have to edit the "location/user" section of the "project.do" code to read specifically for your local computer. The edits are specific to the user and will allow the do file to create the project files in your local computer.
    
    There are 5 sections in the file. The first section called "setup" is an index where you can turn "on" or "off" the directory creation section, `global 			dirCreate	0`,
 the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned on by changing the 0 to 1 or turned off by turning the 1 to a 0. Before we turn on or off the sections we must set the global.
@@ -47,7 +47,9 @@ the stata package installation section, `global 			pack 		0`, and the building t
    
    Now run the project.do.
    
- 5. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. Move the downloaded file to `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw`
+ 4. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. Move the downloaded file to `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw`
+ 
+ 5. Download and install pandoc at https://pandoc.org/installing.html. We use pandoc to compile the code into a word document.
 
 ## Running the code
 
