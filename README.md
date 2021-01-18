@@ -22,11 +22,11 @@ The git repository contains the guide document code, "nigeria_handbook.do" for c
    
  2. Open the project.do
  
-   Locate on your local drive the "git" folder that contains the "lsms-isa_data_handbook" file. Within the "lsms-isa_data_handbook" in the "git" folder is "project.do" - which you must open.
+   Locate and open  the "project.do" in the "lsms-isa_data_handbook" file in the "git" folder.
    
  3. Edit the project.do
  
-   The "project.do" creates a set of files on your local computer to store the raw datasets and the cleaned dataset. We will walk through some steps you must take to edit the "project.do" to work with your unique local username. You will have to edit the "location/user" section of the "project.do" code to read specifically for your local computer. The edits are specific to the user and will allow the do file to create the project files in your local computer.
+   The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset. We have to do a bit of path editing on "project.do" to  work with your unique local username. You will have to edit the "location/user" section of the "project.do" code to read specifically for your local computer. The edits are specific to the user and will allow the do file to create the project files in your local computer.
    
    There are 5 sections in the file. The first section called "setup" is an index where you can turn "on" or "off" the directory creation section, `global 			dirCreate	0`,
 the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned on by changing the 0 to 1 or turned off by turning the 1 to a 0. Before we turn on or off the sections we must set the global.
