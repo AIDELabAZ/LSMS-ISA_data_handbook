@@ -56,4 +56,4 @@ the stata package installation section, `global 			pack 		0`, and the building t
    
    To generate a chapter in the guide you will have to edit the "nigeria_handbook.do" in the "build handbook section". To select a chapter to generate you must remove the `*` in front of the chapter file path and then run the "nigeria_handbook.do". For instance to generate the chapter on constructing the area you must remove the `*` infront of   ```sh "$hndk/wave_2/area_construct", docx   ``` and then run "nigeria_handbook.do". Only one chapter may be generated during each run of "nigeria_handbook.do", so you must replace `*` on any chapter file paths which are not in use. 
    
-  *Yield must be run after all other chapters have been run, but otherwise the order you run the other files in is not important.
+  ***Yield must be run after all other chapters have been run, but otherwise the order you run the other files in is not important.***
