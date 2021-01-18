@@ -30,7 +30,7 @@ The git repository contains the guide document code, the file "nigeria_handbook.
    
    Open the "project.do" file in Stata. On line 45, 46, and 50 replace "emilk" with your unique local username.
    
-    ```
+   ```
        if `"`c(username)'"' == "emilk" {	
         global 		project  	"C:/Users/emilk/git/lsms-isa_data_handbook"	
 		
@@ -38,7 +38,7 @@ The git repository contains the guide document code, the file "nigeria_handbook.
 		whereis pdflatex 		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
 		whereis pandoc 			"C:/Users/emilk/AppData/Local/Pandoc/pandoc.exe"
     }
-    ```
+   ```
    The rest of "project.do" is divided into sections: the directory creation section, `global 			dirCreate	0`,
 the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" or "off" by changing the 0 to 1 or turned off by turning the 1 to a 0. Sections of the code will only run when they are turned on. Turn on `dirCreate` and `pack`.
  
