@@ -30,7 +30,7 @@ The git repository contains the guide document code, the file "nigeria_handbook.
    
    Open the "project.do" file in Stata. On line 45, 46, and 50 replace "emilk" with your unique local username.
    
-    ```sh
+    ```
        if `"`c(username)'"' == "emilk" {	
         global 		project  	"C:/Users/emilk/git/lsms-isa_data_handbook"	
 		
