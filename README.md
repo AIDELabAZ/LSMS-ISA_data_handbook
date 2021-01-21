@@ -1,4 +1,4 @@
-# lsms-isa_data_handbook
+# LSMS-ISA Handbook on Data Processing
 ## LSMS-ISA Processed Dataset Construction and Documentation
 
 The data handbook is an annotated code book listing and explaining the procedures used to clean and prepare the LSMS-ISA data and make a household agricultural production dataset. The agricultural production dataset is designed to estimate crop production functions at the household level. There are 6 preliminary guide documents on the making of datasets for fertilizer, harvest labor, planting labor, crop output, pesticide-herbicide-fungicide-irrigation, and land area. There is a final guide called "yield" which combines the preliminary datasets to make a dataset ready to estimate crop production functions.
@@ -52,7 +52,7 @@ the stata package installation section, `global 			pack 		0`, and the building t
  
  6. Download and install pandoc at https://pandoc.org/installing.html. We use pandoc to compile the code into a word document.
 
-## Compiling the guide in Microsoft word
+## Compiling the guide in Microsoft Word
 
    "nigeria_handbook.do" compiles the handbook in stata and produces Microsoft word documents. Find "nigeria_handbook.do" at `"C:\Users\"username"\git\lsms-isa_data_handbook\code\nigeria\nigeria_handbook.do"`.
    
