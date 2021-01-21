@@ -7,28 +7,28 @@ The guide combines the code, the explanations of the code, and the output in a s
 
 ##  Getting Started: Setting Up A Dev Environment
 
-The git repository contains the guide document code, the file "nigeria_handbook.do" for compiling the guide documents, and a "project.do" to set the file path for the raw data from the World Bank. Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
+The git repository contains the guide document code, "nigeria_handbook.do" for compiling the guide documents, a "project.do" to set the file path for the raw data from the World Bank, and land-conversion.dta which is a land unit conversion file. Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
 
 ### Steps:
 
 1. Download a local copy of the code (clone the repository)
    
-  Open Github desktop. From the `file` menu in the uppermost tool bar select `clone repository...`. In the `clone repository` menu select the `URL` tab and paste and this url or this username/repository_name in the box.
+  Open Github desktop. From the `file` menu in the uppermost tool bar select `clone repository...`. In the `clone repository` menu select the `URL` tab and paste and this url or this username/repository_name in the box:
   
    ```sh 
   https://github.com/jdavidm/lsms-isa_data_handbook or jdavidm/lsms-isa_data_handbook
    ```
    After the github has located repository select the `clone repository` button.
    
- 2. Open the project.do
+ 2. Open the "project.do"
  
-  Once the repository has been cloned to your local locate and open the "project.do" in the "lsms-isa_data_handbook" file in the local "git" folder.
+  Once the repository has been cloned to your local, locate in the "lsms-isa_data_handbook" file in the local "git" folder the "project.do" and open "project.do" in stata.
    
- 3. Edit the project.do
+ 3. Edit the "project.do"
  
-   The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset. We have to do a bit of global path editing on "project.do" to work with the user's unique username. The edits are specific to the user and will allow the "project.do" file to use the paths on your local computer.
+   The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset. We have to do a bit of global path editing on "project.do" to work for your unique local computer username. The edits are specific to your computer and will allow the "project.do" file to use and create the paths on and for your local computer.
    
-   Open the "project.do" file in Stata. On line 45, 46, and 50 replace "emilk" with your unique local username.
+  On line 45, 46, and 50 replace "emilk" with your unique local computer username.
    
    ```
        if `"`c(username)'"' == "emilk" {	
@@ -40,13 +40,13 @@ The git repository contains the guide document code, the file "nigeria_handbook.
     }
    ```
    The rest of "project.do" is divided into sections: the directory creation section, `global 			dirCreate	0`,
-the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" or "off" by changing the 0 to 1 or turned off by turning the 1 to a 0. Sections of the code will only run when they are turned on. Turn on `dirCreate` and `pack`.
+the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" or "off" by changing the 0 to 1 or turned off by turning the 1 to a 0. Sections of the code will only run when they are turned on. Turn "on" `dirCreate` and `pack`.
  
   Now run the project.do.
  
- 4. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. 
+ 4. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. You will need to create an account with the World Bank if you do not already have one.
  
- The dataset file is called NGA_2012_GHSP-W2_v02_M_STATA. Extract the entire file of NGA_2012_GHSP-W2_v02_M_STATA and copy or move it the to `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw`, the nigeria\wave_2\raw file was created by the project.do.
+ The dataset file is called NGA_2012_GHSP-W2_v02_M_STATA. Extract the entire file of NGA_2012_GHSP-W2_v02_M_STATA and copy or move it to `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw` - the nigeria\wave_2\raw file path was created by the project.do.
  
  5. Move or copy the file land-conversion.dta from the cloned repository to `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw`
  
@@ -54,10 +54,12 @@ the stata package installation section, `global 			pack 		0`, and the building t
 
 ## Compiling the guide in Microsoft word
 
-   "nigeria_handbook.do" compiles the handbook in Microsoft word documents. Find "nigeria_handbook.do" at `"C:\Users\"username"\git\lsms-isa_data_handbook\code\nigeria\nigeria_handbook.do"`.
+   "nigeria_handbook.do" compiles the handbook in stata and produces Microsoft word documents. Find "nigeria_handbook.do" at `"C:\Users\"username"\git\lsms-isa_data_handbook\code\nigeria\nigeria_handbook.do"`.
    
-   You must first run the project.do file at the start of every session working with the "nigeria_handbook.do" file. 
+   You must first run the "project.do" file at the start of every session working with the "nigeria_handbook.do" file. 
    
-   To generate a chapter in the guide you will have to edit the "nigeria_handbook.do" in the "build handbook section". To select a chapter to generate you must remove the `*` in front of the chapter file path and then run the "nigeria_handbook.do". For instance to generate the chapter on constructing the area you must remove the `*` infront of   ```sh "$hndk/wave_2/area_construct", docx   ``` and then run "nigeria_handbook.do". Only one chapter may be generated during each run of "nigeria_handbook.do", so you must replace `*` on any chapter file paths which are not in use. 
+   To generate a chapter in the guide open the "nigeria_handbook.do" and in the "build handbook section" edit and remove the `*` in front of the chapter file path. For instance to generate the chapter on constructing the area you must remove the `*` infront of   ```sh "$hndk/wave_2/area_construct", docx   ```
+   
+   Then run "nigeria_handbook.do" to produce the chapter. Only one chapter may be generated during each run of "nigeria_handbook.do", so you must replace `*` on any chapter file paths which are not in use. 
    
   ***The chapter on Yield must be run after all the other chapters have been run, but otherwise the order you run the other files in is not important.***
