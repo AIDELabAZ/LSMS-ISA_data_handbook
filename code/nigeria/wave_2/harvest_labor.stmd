@@ -7,9 +7,9 @@ The labor data in the Nigeria General Household Survey, Panel 2012-2013, Wave 2 
 The data does not differentiate the types of activities that might take place during the harvest period so the final harvest labor should just be considered a measure of aggregate labor used on the plot during the harvest season. The labor recorded in this file relates to all activities involved in the harvest. The data refers to labor inputs at the plot level. The data is therefore at the plot level and an observation can be identified by its **plot_id** and its **hhid**.
 
 ```s/
-use "$root/wave_2/raw/secta2_harvestw2.dta", clear
-	
+use "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Harvest Wave 2/Agriculture/secta2_harvestw2.dta", clear
 ```
+
 `Describe` the data will display the variables' names and the data labels. The variables names are somewhat obtuse because they are named with reference to the survey instrument, namely what section and order the question appears in the survey. The name is used to look up the question in the survey and read exactly how the question was asked to the respondent.
 
 Take notice, we use the `quietly` command in front of most of our commands because we want to suppress stata from displaying output. We include `quietly` to make our guide look user friendly. We recommend you do not include the 'quietly' command so you can see the output. 

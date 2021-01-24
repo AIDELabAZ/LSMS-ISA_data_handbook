@@ -18,22 +18,6 @@
 	* add all do-files
 
 
-* **********************************************************************
-* 0 - setup
-* **********************************************************************
-
-* set $dirCreate to 0 to skip directory creation
-	global 			dirCreate	1
-
-* set $pack to 0 to skip package installation
-	global 			pack 		0
-	
-* set $document to 0 to skip building handbook
-	global			document	0
-	
-* specify Stata version in use
-    global stataVersion 16.1    // set Stata version
-    version $stataVersion
 
 	
 * **********************************************************************
@@ -42,28 +26,13 @@
 
 
 * define root folder globals
-    if `"`c(username)'"' == "jdmichler" {
-        global 		project  	"C:/Users/jdmichler/git/lsms-isa_data_handbook"
+
+    if `"`c(username)'"' == "USERNAME" {	
+        global 		project  	"C:/Users/USERNAME/git/lsms-isa_data_handbook"	
 		
 		* tell Stata where to find the relevant programs
 		whereis pdflatex 		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
-		whereis pandoc 			"C:/Program Files/Pandoc/pandoc.exe"
-    }
-
-    if `"`c(username)'"' == "aljosephson" {
-        global 		project  	"C:/Users/aljosephson/git/lsms-isa_data_handbook"
-		
-		* tell Stata where to find the relevant programs
-		whereis pdflatex 		"C:/Program Files/MiKTeX 2.9/miktex/bin/x64/pdflatex.exe"
-		whereis pandoc 			"C:/Program Files/Pandoc/pandoc.exe"
-    }
-
-    if `"`c(username)'"' == "emilk" {	
-        global 		project  	"C:/Users/emilk/git/lsms-isa_data_handbook"	
-		
-		* tell Stata where to find the relevant programs
-		whereis pdflatex 		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
-		whereis pandoc 			"C:/Users/emilk/AppData/Local/Pandoc/pandoc.exe"
+		whereis pandoc 			"C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe"
     }
 	
 * **********************************************************************
@@ -104,9 +73,29 @@
 	questionnaire	    // questionnaires
 * **********************************************************************/
 
+* **********************************************************************
+* 0 - setup
+* **********************************************************************
+
+* set $dirCreate to 0 to skip directory creation
+	global 			dirCreate	1
+
+* set $pack to 0 to skip package installation
+	global 			pack 		0
+	
+* set $document to 0 to skip building handbook
+	global			document	0
+	
+* specify Stata version in use
+    global stataVersion 16.1    // set Stata version
+    version $stataVersion
+
+* **********************************************************************
+
+	
 * make a local macro containing all the folder names
-    loc direct = "ethiopia malawi niger nigeria tanzania uganda"
-	loc round  = "wave_1 wave_2 wave_3"
+    loc direct = "nigeria"
+	loc round  = "wave_2"
 	
 if $dirCreate == 1 {
 	foreach folder of local direct {
@@ -116,14 +105,11 @@ if $dirCreate == 1 {
 		qui: capture mkdir 		"$data/`folder'/`wave'/"
 		qui: capture mkdir 		"$data/`folder'/`wave'/raw/"
 		qui: capture mkdir 		"$data/`folder'/`wave'/refined/"
-		qui: capture mkdir 		"$data/`folder'/`wave'/analysis/"
-		qui: capture mkdir 		"$data/`folder'/logs/"
 		}
 	}
 
     * Overall analysis
-		qui: capture mkdir		"$output/tables/"
-		qui: capture mkdir		"$output/figures/"
+		qui: capture mkdir		"$code/`folder'/`wave'/"
 }
 
 	

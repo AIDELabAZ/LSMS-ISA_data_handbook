@@ -11,7 +11,7 @@ Our technique to clean fertilizer will be to identify the types of fertilizers b
 Open "sect11d_plantingw2.dta" from the Nigeria General Household Survey, Panel 2012-2013, Wave 2 using the appropriate file path based on the location of the raw data. This file relates to the survey taken after the planting season but before the harvest season.
 
 ```{s}
-	use				"$root\wave_2\raw\sect11d_plantingw2.dta", clear
+	use				"$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Planting Wave 2/Agriculture/sect11d_plantingw2.dta", clear
 ```
 
 `Describe` the data will display the variables' names and the data labels. The variables names are somewhat obtuse because they are named with reference to the survey instrument, namely what section and order the question appears in the survey. The name is used to look up the question in the survey and read exactly how the question was asked to the respondent.

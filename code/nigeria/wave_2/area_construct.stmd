@@ -5,7 +5,7 @@
 This chapter is a guide to generating a data set for plot sizes in hectares from the Nigeria General Household Survey. During survey work selected plots were measured with a handheld GPS. All plots were also have a measure of size given by the farmers. The GPS is more accurate than the self reported plot sizes. But we will attempt at first to use both measures in the end. The GPS measure was taken in meters, it is straightforward to convert to hectares. The self reported plot sizes are reported in multiple units you may or not recognize. Those can be converted straightforwardly with the conversion file. 
 
 ```{s}
-use "$root/wave_2/raw/sect11a1_plantingw2.dta", clear
+use "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Planting Wave 2/Agriculture/sect11a1_plantingw2.dta", clear
 ```
 
 The variables have coded names that refer to the question in the survey. You can access the survey instrument on the World Bank website and look up the question to see exactly how the question was put to the respondents. In the data the labels tell us something about what the variable measures. `Describe` outputs all variables' labels along with data type and more technical information about howo the variable is stored in the file. 

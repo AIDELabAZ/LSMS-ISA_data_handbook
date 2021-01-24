@@ -10,7 +10,7 @@ To access the data from the World Bank website go the Central data catalog on th
 
 ```{s}
 
-use "$root/wave_2/raw/secta3_harvestw2.dta", clear 
+use "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Harvest Wave 2/Agriculture/secta3_harvestw2.dta", clear 
 
 ```
 
@@ -76,7 +76,7 @@ The non-standard units are a challenge to convert because some of the units are 
 Before merging keep in mind all crops of the same type when measured with the same units will share the same conversion factor. In matching more than one oberservation from the main dataset to one observation in the merging dataset the merge is called a many to one merge. Keep "ph_secta3.dta" open and merge "harvconv_wave_2.dta" on **cropcode** and **nscode** and specify the type of merge is m:1, many to one.
 
 ```{s}
- merge 			m:1 cropcode nscode using "$root/wave_2/raw/w2agnsconversion.dta"
+ merge 			m:1 cropcode nscode using "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/w2agnsconversion.dta"
 ```
 
 After a merge command Stata automatically produces a variable called **_merge** that it is encoded as **_merge**==3 if an observation from the "master" (the main file secta3_harvestw2.dta) was matched to an observation from the "using" (the conversion file). **_merge**==1 if an observation from the master file was unable to be matched to an observation in the using, this means a crop is measured by a unit we do not have a conversion. And **_merge**==2 if an observation from the using file was not matched to the master, this means the using file contained a crop and a unit of measurement that is not present in the main data, which is a conversion we do not need. Drop the observations we don't need.

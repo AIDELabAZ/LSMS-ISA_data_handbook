@@ -7,7 +7,7 @@ Farm output is likely to be positively affected by irrigation and whether pestic
 The file we want to use is **sect11b1_plantingw2.dta**. The file contains a lot of variables that do not relate to irrigation, we will drop those extra variables at the end and have a streamlined dataset on irrigation.
 
 ```{s}
-use "$root/wave_2/raw/sect11b1_plantingw2.dta", clear
+use "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Planting Wave 2/Agriculture/sect11b1_plantingw2.dta", clear
 ```
 
 The irrigation information relates to irrigation on a single plot belonging to a household. We will eventually want to merge the irrigation data with labor, output, other inputs, etc. It makes sense that we want to match plot inputs to plot outputs. Observations are identified geographically by zone, state, LGA, sector, EA, and then identified by a household ID number and a plot ID. Houshold id's are unique across the dataset, while plot id's are unique to the households, so we can uniquely identify plots by the household id and then by the plot id. 
@@ -57,7 +57,7 @@ We will produce two binary variables for herbicide and pesticide that shows "yes
 
 The file we want to use is **sect11c2_plantingw2.dta**. The file contains a number of variables we will mostly discard.
 ```{s}
-	use "$root/wave_2/raw/sect11c2_plantingw2.dta", clear
+	use "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Planting Wave 2/Agriculture/sect11c2_plantingw2.dta", clear
 ```
 
 The data is at the household-plot level, this means each household has a unique ID and each plot used or belonging to a household is uniquely identified within the household. We should be able to identify the observations by the household ID and then the plot ID. We can confirm the data structure with the `isid` command, which will not produce a display if the data is uniquely identified by household ID and plot ID.
