@@ -150,6 +150,11 @@ if $pack == 1 {
 		net install StataConfig, ///
 		from(https://raw.githubusercontent.com/etjernst/Materials/master/stata/) replace
 	
+	* install -markstat- package
+		ssc install markstat
+		
+	* install -whereis- package
+		ssc install whereis.
 	* update all ado files
 		ado update, update
 
