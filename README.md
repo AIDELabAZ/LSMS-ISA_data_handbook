@@ -29,15 +29,15 @@ The git repository contains the guide document code, "nigeria_handbook.do" for c
  
    The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset. We have to do a bit of global path editing on "project.do" to work for your unique local computer username. The edits are specific to your computer and will allow the "project.do" file to use and create the paths on and for your local computer.
    
-  On line 45, 46, and 50 replace "emilk" with your unique local computer username.
+  On line 30, 31, and 35 replace "USERNAME" with your unique local computer username.
    
    ```
-       if `"`c(username)'"' == "***USERNAME***" {	
-        global 		project  	"C:/Users/***USERNAME***/git/lsms-isa_data_handbook"	
+       if `"`c(username)'"' == "USERNAME" {	
+        global 		project  	"C:/Users/USERNAME/git/lsms-isa_data_handbook"	
 		
 		* tell Stata where to find the relevant programs
 		whereis pdflatex 		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
-		whereis pandoc 			"C:/Users/***USERNAME***/AppData/Local/Pandoc/pandoc.exe"
+		whereis pandoc 			"C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe"
     }
    ```
    The rest of "project.do" is divided into sections: the directory creation section, `global 			dirCreate	0`,
@@ -59,8 +59,10 @@ the stata package installation section, `global 			pack 		0`, and the building t
    
    You must first run the "project.do" file at the start of every session working with the "nigeria_handbook.do" file. 
    
-   To generate a chapter in the guide open the "nigeria_handbook.do" and in the "build handbook section" edit and remove the `*` in front of the chapter file path. For instance to generate the chapter on constructing the area you must remove the `*` infront of   ```sh "$hndk/wave_2/area_construct", docx   ```
+   ***The chapter on Yield must be run after all the other chapters have been run, but otherwise the order you run the other files in is not important.***
    
-   Then run "nigeria_handbook.do" to produce the chapter. Only one chapter may be generated during each run of "nigeria_handbook.do", so you must replace `*` on any chapter file paths which are not in use. 
+   To generate a chapter in the guide open the "nigeria_handbook.do" and in the "build handbook section" edit and remove the `*` in front of the chapter file path. For instance to generate the chapter on constructing the area you must remove the star `*` infront of   ``` markstat using "$hndk/wave_2/area_construct", docx   ``` then run "nigeria_handbook.do" to produce the chapter. 
    
-  ***The chapter on Yield must be run after all the other chapters have been run, but otherwise the order you run the other files in is not important.***
+   Only one chapter may be generated during each run of "nigeria_handbook.do", so you must replace `*` on any chapter file paths which are not in use. 
+   
+  
