@@ -31,7 +31,6 @@
         global 		project  	"C:/Users/USERNAME/git/lsms-isa_data_handbook"	
 		
 		* tell Stata where to find the relevant programs
-		whereis pdflatex 		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
 		whereis pandoc 			"C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe"
     }
 	
