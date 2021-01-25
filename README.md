@@ -47,7 +47,7 @@ the stata package installation section, `global 			pack 		0`, and the building t
  
  5. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. You will need to create an account with the World Bank if you do not already have one.
  
- The dataset file is called NGA_2012_GHSP-W2_v02_M_STATA. Extract the entire file of NGA_2012_GHSP-W2_v02_M_STATA and copy or move it to `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw` - the nigeria\wave_2\raw file path was created by the project.do.
+ The dataset file is called NGA_2012_GHSP-W2_v02_M_STATA. ***Extract the entire file NGA_2012_GHSP-W2_v02_M_STATA and copy or move it to*** `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw` - the folders in this path were created by the project.do.
  
  6. Move or copy the file land-conversion.dta from the cloned repository to `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw`
  
