@@ -10,7 +10,7 @@ The guide combines the code, the explanations of the code, and the output in a s
 The git repository contains the guide document code, "nigeria_handbook.do" for compiling the guide documents, a "project.do" to set the file path for the raw data from the World Bank, and land-conversion.dta which is a land unit conversion file. Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
 
 ### Steps:
-1. Download and install pandoc at https://pandoc.org/installing.html. We use pandoc to compile the code into a word document.
+1. We use pandoc to compile the guide word document. Pandoc can be downloaded from https://pandoc.org/installing.html. Install pandoc with this path when prompted in the pandoc installation guide where to save pandoc: "C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe". If pandoc was already installed or installed with another path then copy your local path for `pandoc.exe` and continue following this guide, when you reach step 4 you will be directed to paste that path into a do file. 
 
 2. Download a local copy of the code (clone the repository)
    
@@ -29,17 +29,18 @@ The git repository contains the guide document code, "nigeria_handbook.do" for c
  
    The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset. We have to do a bit of global path editing on "project.do" to work for your unique local computer username. The edits are specific to your computer and will allow the "project.do" file to use and create the paths on and for your local computer.
    
-  On line 30, 31, and 35 replace "USERNAME" with your unique local computer username.
+  On line 30, 31, and 34 replace "USERNAME" with your unique local computer username.
    
    ```
        if `"`c(username)'"' == "USERNAME" {	
         global 		project  	"C:/Users/USERNAME/git/lsms-isa_data_handbook"	
 		
 		* tell Stata where to find the relevant programs
-		whereis pdflatex 		"C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
 		whereis pandoc 			"C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe"
     }
    ```
+   **If pandoc.exe was installed with a different path then now is the time to replace "C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe" on line 34 with pandoc.exe's path in your local computer.**
+   
    The rest of "project.do" is divided into sections: the directory creation section, `global 			dirCreate	0`,
 the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" or "off" by changing the 0 to 1 or turned off by turning the 1 to a 0. Sections of the code will only run when they are turned on. Turn "on" `dirCreate` and `pack`.
  
