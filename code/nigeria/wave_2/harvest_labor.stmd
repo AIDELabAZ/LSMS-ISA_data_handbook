@@ -197,10 +197,10 @@ Make the planting period labor variable by adding together the labor of all the 
 	lab var			hrv_labor "total labor at harvest (days)"
 ```
 
-Check missing observations. And replace them with 0 if they are supposed to be zero, or the correct non-zero if labor was used on that plot.
+There should be no missing observations for `hrv_labor` but let's check them to be sure.
 
 ```{s}
-	mdesc			hrv_labor
+	tab hhid 		if			hrv_labor == .
 ```	
 	
 We want the data set to only have the variables we are interested in using so we should drop the ones we are not using. There are more variables we want to drop so we can use `keep` to keep the ones we want and drop everything else.
