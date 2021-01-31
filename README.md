@@ -1,5 +1,5 @@
 # LSMS-ISA Handbook on Data Processing
-## LSMS-ISA Processed Dataset Construction and Documentation
+## Processed Dataset Construction and Documentation
 
 The data handbook is an annotated code book listing and explaining the procedures used to clean and prepare the LSMS-ISA data and make a household agricultural production dataset. The agricultural production dataset is designed to estimate crop production functions at the household level. There are 6 preliminary guide documents on the making of datasets for fertilizer, harvest labor, planting labor, crop output, pesticide-herbicide-fungicide-irrigation, and land area. There is a final guide called "yield" which combines the preliminary datasets to make a dataset ready to estimate crop production functions.
 
