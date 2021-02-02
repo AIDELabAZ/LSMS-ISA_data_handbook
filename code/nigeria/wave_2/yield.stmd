@@ -98,7 +98,7 @@ As with the pesticide and herbicide merge, the umatched observations from the "u
 
 ```{s}
 	drop			if _11d == 2
-	replace 		fert_any == 2 if _11d == 1
+	replace 		fert_any = 2 if _11d == 1
 ```
 
 We proceed to merge in harvest labor data.
@@ -181,9 +181,9 @@ It is important to summarize the variable we have just produced, at a quick glan
 	sum 		mz_yld, detail
 ```
 
-The **mz_yld** turns out to have large values. We should replace the very large outliers and impute the missing observations outliers. We have repeated the steps to impute many times in the previous chapters so for brevity we will not describe here how imputation works (reference the chapter where to look for imputation), but we will simply lay out the steps and highlight the parts of the code which are specific to this case. 
+The **mz_yld** turns out to have large values. We should replace the very large outliers and impute the missing observations outliers. We have repeated the steps to impute many times in the previous chapters so for brevity we will not describe here how imputation works (see crop_output chapter), we will lay out the steps and highlight the parts of the code which are specific to this case. 
 
-As with any imputation we must first decide which outliers we wish to target. Observations which are greater than three standard deviations from the mean we will change to missing.
+As with any imputation we must first decide which outliers we wish to target. Observations which are greater than 3 standard deviations from the mean we will change to missing.
 
 ```{s}
 	replace 	mz_yld = . if mz_yld > `r(p50)' + (3*`r(sd)')
@@ -213,14 +213,14 @@ Sort the data to ensure reproducibility. Sorting the data can be done at any sta
 	sort			hhid plotid, stable 
 ```
 	
-Use predictive mean matching (pmm) to impute the data, the regression’s dependent variable is **mz_yld** and the independent variable is **i.state** (a dummy for each state). Set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing **mz_yld** observations to match to the estimate, for example we choose to match to the nearest 5 observations; "bootstrap" requests Stata sample the data with replacement and regress on the created random sample; "rseed(#)" specifies the random number seed used to create the sample. 
+Use predictive mean matching (pmm) to impute the data, the regression in the imputation has **mz_yld** for the dependent variable and **i.state** (a dummy for each state) as the independent variable. Enable the impute option "force" which enables the regression to run even if an error occurs; "knn(#)" determines the number of non-missing **mz_yld** observations to match to the estimate, for example we choose to match to the nearest 5 observations; "bootstrap" samples the data with replacement and regresses on the bootstapped sample; "rseed(#)" specifies the random number seed used to create the sample. 
 
 
 ```{s}
 	quietly mi impute 		pmm mz_yld i.state, add(1) rseed(245780) noisily dots ///
 						force knn(5) bootstrap
 ```
-Declare the imputing to be over:
+Declare the imputing to be over by `mi unset`.
 
 ```{s}
 
@@ -239,7 +239,7 @@ The maize yield variable is imputed meaning its different from what it was when 
 ```{s}
 	lab var 		mz_yld "maize yield (kg/ha), imputed"
 ```
-We have cleaned the maize output per hectare, this implies for every hectare we expect to observe a certain amount of maize output. By multiplying the yield with the plotsize we can infer an imputed total maize output.
+Having now cleaned **mz_yld (kg/ha)** we can calculate the total maize output for a field by multiplying the yield with the plotsize.
 
 ```{s}
 	generate 		mz_hrvimp = mz_yld * mz_lnd
@@ -257,7 +257,8 @@ We have cleaned the maize output per hectare, this implies for every hectare we 
 	replace 	mz_value = . if mz_value > `r(p50)' + (3*`r(sd)')
 ```
 
-For the sake of brevity we have included the imputation code for **mz_value** but we have not included any discussion because the steps are exactly the same as **mz_yld** except where appropriate **mz_yld** has been replaced by **mz_value** in the code.
+For the sake of brevity we have included the imputation code for **mz_value** but we have not included any discussion of our approach to imputation (refer to chapter crop_output for a discussion about imputation).
+
 ```{s}
 	mi set 			wide 
 
@@ -277,7 +278,7 @@ For the sake of brevity we have included the imputation code for **mz_value** bu
 	drop 			mz_value_1_
 ```
 
-# Maize Labor days per hectare (days/ha)
+# Maize Labor Days Per Hectare (days/ha)
 
 Create the maize labor used per hectare variable.
 
@@ -313,7 +314,7 @@ Impute the missing observations.
 	drop 			labordays_ha_mz_1_
 ```
 
-Relabel the maize labor variable to keep track of the imputation.
+Relabel the maize labor variable to keep track of that the variable has been imputed.
 
 ```{s}
 		lab var			labordays_ha_mz	"maize labor use (days/ha), imputed"
@@ -326,9 +327,9 @@ Infer total maize labor use with the per hectare labor use.
 	lab var			mz_labimp "maize labor (days), imputed"
 ```
 
-# Fertilizer application per hectare, used on maize (kg/ha)
+# Fertilizer Application Per Hectare, Used on Maize (kg/ha)
 
-Create the fertilizer used per hectare variable.
+Create the fertilizer use variable. Fertilizer use is measured as kilograms of fertilizer applied per hectare.
 
 ```{s}
 	gen 		fert_use_ha_mz = fert_use/plotsize if mz_lnd != .
@@ -375,15 +376,31 @@ Infer the total fertilizer used from the per hectare measure.
 	lab var			mz_frtimp "fertilizer (kg), imputed"
 ```
 
-# Total crop yield (kg/ha)
+# Plot Total Crop Yield (kg/ha)
+
+Generate yield of all crops on each plot. Yield is measured in kilograms of output per hectare. Generate total plot yield by dividing **harv_kg**, the weight of all crops harvested on the plot, by **plotsize**, the size of the plot in hectares.
 
 ```{s}
 	gen 		kg_yld = harv_kg / plotsize
 	label var   kg_yld "total crop yield (kg/ha)"
-	quietly sum 		kg_yld, detail
+```
 
+Summarize **kg_yld**, notice the extreme values, if the values appear to be too large then we will replace the high values with missing values and impute the missing values.
+
+```{s}
+	sum 		kg_yld, detail
+```
+
+The maximum value is 2114473 kg/ha, clearly this is unrealistic. Replace all values that are greater than 3 standard deviations from the mean.
+
+```{s}
 	replace 	kg_yld = . if kg_yld > `r(p50)' + (3*`r(sd)')
-	
+```
+
+Take the steps to impute the values in **kg_yld** that we replaced with missing values.
+
+```{s}
+
 	mi set 			wide 
 
 	mi xtset		, clear 
