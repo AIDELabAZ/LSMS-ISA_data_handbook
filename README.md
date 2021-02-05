@@ -5,6 +5,8 @@ The data handbook is an annotated code book listing and explaining the procedure
 
 The guide combines the code, the explanations of the code, and the output in a single document. The user generates the guide by running a stata do file that runs the code with the data and compiles the results into a single document. To compile the guide please follow the steps below.
 
+***Instructions for Mac OS users are below the instructions for Microsoft Windows***
+
 ## For Microsoft Windows
 
 ##  Getting Started: Setting Up A Dev Environment  
