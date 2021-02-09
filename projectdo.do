@@ -27,11 +27,11 @@
 
 * define root folder globals
 
-    if `"`c(username)'"' == "emilk" {	
-        global 		project  	"C:/Users/emilk/git/lsms-isa_data_handbook"	
+    if `"`c(username)'"' == "USERNAME" {	
+        global 		project  	"C:/Users/USERNAME/git/lsms-isa_data_handbook"	
 		
 		* tell Stata where to find the relevant programs
-		whereis pandoc 			"C:/Users/emilk/AppData/Local/Pandoc/pandoc.exe"
+		whereis pandoc 			"C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe"
     }
 	
 * **********************************************************************
@@ -45,28 +45,6 @@
 	qui: capture mkdir			"$project/data"
     global data					"$project/data"
 	
-* **********************************************************************	
-/* within each data folder, standardize sub-folders
-	data
-		country			// one folder per country
-			wave			// one folder per wave
-				raw 	        // contains raw data, never to be altered
-				refined			// contains any intermediate data sets
-				analysis	    // analysis-ready data sets
-			logs			// where log files live
-	code	     
-		country			// one folder per country
-			wave			// one folder per wave
-				raw 	        // scripts for cleaning raw data
-				refined			// scripts for cleaning refined data
-				analysis	    // scripts for analysis
- 	output
-        tables
-        figures
-	documentation	    // documentation
-	questionnaire	    // questionnaires
-* **********************************************************************/
-
 * **********************************************************************
 * 0 - setup
 * **********************************************************************
@@ -111,50 +89,19 @@ if $dirCreate == 1 {
 * 0 (c) - Check if any required packages are installed
 * **********************************************************************
 
-* install packages if global is set to 1
+* install markstat and whereis packages if global is set to 1
 if $pack == 1 {
-	
-	* temporarily set delimiter to ; so can break the line
-		#delimit ;
-	* for packages/commands, make a local containing any required packages
-		loc userpack "blindschemes mdesc estout distinct winsor2" ;
-		#delimit cr
-	
-	* install packages that are on ssc	
-		foreach package in `userpack' {
-			capture : which `package', all
-			if (_rc) {
-				capture window stopbox rusure "You are missing some packages." "Do you want to install `package'?"
-				if _rc == 0 {
-					capture ssc install `package', replace
-					if (_rc) {
-						window stopbox rusure `"This package is not on SSC. Do you want to proceed without it?"'
-					}
-				}
-				else {
-					exit 199
-				}
-			}
-		}
 
-	* install -xfill- package
-		net install xfill, replace from(https://www.sealedenvelope.com/)
-		
 	* install -customsave package
 		net install StataConfig, ///
 		from(https://raw.githubusercontent.com/etjernst/Materials/master/stata/) replace
 	
 	* install -markstat- package
-		ssc install markstat
+		ssc install markstat, replace
 		
 	* install -whereis- package
 		ssc install whereis.
-	* update all ado files
-		ado update, update
 
-	* set graph and Stata preferences
-		set scheme plotplain, perm
-		set more off
 }
 
 * **********************************************************************
@@ -165,10 +112,6 @@ if $pack == 1 {
 if $document == 1 {
 	do	"$code/nigeria/nigeria_handbook.do"
 	
-	
-	
-	
-	
-	
 }
+
 /* END */
