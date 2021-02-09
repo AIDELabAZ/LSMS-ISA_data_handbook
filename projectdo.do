@@ -27,11 +27,11 @@
 
 * define root folder globals
 
-    if `"`c(username)'"' == "USERNAME" {	
-        global 		project  	"C:/Users/USERNAME/git/lsms-isa_data_handbook"	
+    if `"`c(username)'"' == "emilk" {	
+        global 		project  	"C:/Users/emilk/git/lsms-isa_data_handbook"	
 		
 		* tell Stata where to find the relevant programs
-		whereis pandoc 			"C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe"
+		whereis pandoc 			"C:/Users/emilk/AppData/Local/Pandoc/pandoc.exe"
     }
 	
 * **********************************************************************
@@ -45,11 +45,6 @@
 	qui: capture mkdir			"$project/data"
     global data					"$project/data"
 	
-* create sub-folder for output and define global for output
-	qui: capture mkdir			"$project/output"
-    global output				"$project/output"
-	
-
 * **********************************************************************	
 /* within each data folder, standardize sub-folders
 	data
@@ -80,10 +75,10 @@
 	global 			dirCreate	1
 
 * set $pack to 0 to skip package installation
-	global 			pack 		0
+	global 			pack 		1
 	
 * set $document to 0 to skip building handbook
-	global			document	0
+	global			document	1
 	
 * specify Stata version in use
     global stataVersion 16.1    // set Stata version
