@@ -16,7 +16,7 @@ The guide combines the code, the explanations of the code, and the output in a s
 The git repository contains the guide document code, "nigeria_handbook.do" for compiling the guide documents, a "project.do" to set the file path for the raw data from the World Bank, and land-conversion.dta which is a land unit conversion file. Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
 
 ### Steps:
-1. We use pandoc to compile the guide word document. Pandoc can be downloaded from https://pandoc.org/installing.html. Install pandoc with this path when prompted in the pandoc installation guide where to save pandoc: "C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe". If pandoc was already installed or installed with another path then copy your local path for `pandoc.exe` and continue following this guide, when you reach step 4 you will be directed to paste that path into a do file. 
+1. We use pandoc to compile the guide word document. Pandoc can be downloaded from https://pandoc.org/installing.html. Install pandoc with this path when prompted in the pandoc installation guide where to save pandoc: "C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe". If pandoc was already installed or installed with another path then copy your local path for `pandoc.exe` and continue following this guide, when you reach step 5 you will be directed to paste that path into a do file. 
 
 2. Download a local copy of the code (clone the repository)
    
@@ -67,7 +67,7 @@ the stata package installation section, `global 			pack 		0`, and the building t
  The git repository contains the guide document code, "nigeria_handbook.do" for compiling the guide documents, a "project.do" to set the file path for the raw data from the World Bank, and land-conversion.dta which is a land unit conversion file. Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
 
 ### Steps:
-1. We use pandoc to compile the guide word document. Pandoc can be downloaded from https://pandoc.org/installing.html. Install pandoc with this path when prompted in the pandoc installation guide where to save pandoc: "C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe". If pandoc was already installed or installed with another path then copy your local path for `pandoc.exe` and continue following this guide, when you reach step 4 you will be directed to paste that path into a do file. 
+1. We use pandoc to compile the guide word document. Pandoc can be downloaded from https://pandoc.org/installing.html. Install pandoc with this path when prompted in the pandoc installation guide where to save pandoc: "C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe". If pandoc was already installed or installed with another path then copy your local path for `pandoc.exe` and continue following this guide, when you reach step 5 you will be directed to paste that path into a do file. 
 
 2. Download a local copy of the code (clone the repository)
    
