@@ -59,18 +59,13 @@ the stata package installation section, `global 			pack 		0`, and the building t
  6. Move or copy the file land-conversion.dta from the cloned repository to `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw`
  
  ## Compiling the Guide in Microsoft Word
+ 
+1.  Run the "project.do" file at the start of every session.
 
-   "nigeria_handbook.do" compiles the handbook in stata and produces Microsoft word documents. Find "nigeria_handbook.do" at `"C:\Users\"username"\git\lsms-isa_data_handbook\code\nigeria\nigeria_handbook.do"`.
+2. All chapters of the guide will be generated in Microsoft Word documents after running "nigeria_handbook.do". Run "nigeria_handbook.do" in the same stata window you ran the "project.do" in. Find "nigeria_handbook.do" at `"C:\Users\"username"\git\lsms-isa_data_handbook\code\nigeria\nigeria_handbook.do"`. 
+
+3. Save each chapter of the guide in Microsoft Word individually. You now have the cleaned data and the guide.
    
-   You must first run the "project.do" file at the start of every session working with the "nigeria_handbook.do" file. 
-   
-   ***The chapter on Yield must be run after all the other chapters have been run, but otherwise the order you run the other files in is not important.***
-   
-   To generate a chapter in the guide open the "nigeria_handbook.do" and in the "build handbook section" edit and remove the `*` in front of the chapter file path. For instance to generate the chapter on constructing the area you must remove the star `*` infront of   ``` markstat using "$hndk/wave_2/area_construct", docx   ``` then run "nigeria_handbook.do" to produce the chapter. 
-   
-   Only one chapter may be generated during each run of "nigeria_handbook.do", so you must replace `*` on any chapter file paths which are not in use. 
- 
- 
  ## For Mac OS
  
  ##  Setting Up a Dev Environment
@@ -122,14 +117,10 @@ the stata package installation section, `global 			pack 		0`, and the building t
 
 ## Compiling the Guide in Microsoft Word
 
-   "nigeria_handbook.do" compiles the handbook in stata and produces Microsoft word documents. Find "nigeria_handbook.do" at `"C:\Users\"username"\git\lsms-isa_data_handbook\code\nigeria\nigeria_handbook.do"`.
-   
-   You must first run the "project.do" file at the start of every session working with the "nigeria_handbook.do" file. 
-   
-   ***The chapter on Yield must be run after all the other chapters have been run, but otherwise the order you run the other files in is not important.***
-   
-   To generate a chapter in the guide open the "nigeria_handbook.do" and in the "build handbook section" edit and remove the `*` in front of the chapter file path. For instance to generate the chapter on constructing the area you must remove the star `*` infront of   ``` markstat using "$hndk/wave_2/area_construct", docx   ``` then run "nigeria_handbook.do" to produce the chapter. 
-   
-   Only one chapter may be generated during each run of "nigeria_handbook.do", so you must replace `*` on any chapter file paths which are not in use. 
+1.  Run the "project.do" file at the start of every session.
+
+2. All chapters of the guide will be generated in Microsoft Word documents after running "nigeria_handbook.do". Run "nigeria_handbook.do" in the same stata window you ran the "project.do" in. Find "nigeria_handbook.do" at `"C:\Users\"username"\git\lsms-isa_data_handbook\code\nigeria\nigeria_handbook.do"`. 
+
+3. Save each chapter of the guide in Microsoft Word individually. You now have the cleaned data and the guide.
    
   
