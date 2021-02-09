@@ -58,11 +58,9 @@ the stata package installation section, `global 			pack 		0`, and the building t
   
  ## Compiling the Guide in Microsoft Word
  
-1.  Run the "project.do" file at the start of every session.
+1.  Run the "project.do" file at the start of every session. All chapters of the guide will be generated in Microsoft Word documents after running the "project.do". 
 
-2. All chapters of the guide will be generated in Microsoft Word documents after running "nigeria_handbook.do". Run "nigeria_handbook.do" in the same stata window you ran the "project.do" in. Find "nigeria_handbook.do" at `"C:\Users\"username"\git\lsms-isa_data_handbook\code\nigeria\nigeria_handbook.do"`. 
-
-3. Save each chapter of the guide in Microsoft Word individually. You now have the cleaned data and the guide.
+2. Save each chapter of the guide in Microsoft Word individually. You now have the cleaned data and the guide.
    
  ## For Mac OS
  
@@ -113,10 +111,8 @@ the stata package installation section, `global 			pack 		0`, and the building t
 
 ## Compiling the Guide in Microsoft Word
 
-1.  Run the "project.do" file at the start of every session.
+1.  Run the "project.do" file at the start of every session. All chapters of the guide will be generated in Microsoft Word documents after running the "project.do".
 
-2. All chapters of the guide will be generated in Microsoft Word documents after running "nigeria_handbook.do". Run "nigeria_handbook.do" in the same stata window you ran the "project.do" in. Find "nigeria_handbook.do" at `"C:\Users\"username"\git\lsms-isa_data_handbook\code\nigeria\nigeria_handbook.do"`. 
-
-3. Save each chapter of the guide in Microsoft Word individually. You now have the cleaned data and the guide.
+2. Save each chapter of the guide in Microsoft Word individually. You now have the cleaned data and the guide.
    
   
