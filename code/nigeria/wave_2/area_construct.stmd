@@ -2,30 +2,38 @@
 % Emil Kee-Tui 
 % `s c(current_date)`
 
-This chapter is a guide to generating a data set for plot sizes in hectares from the Nigeria General Household Survey. During survey work selected plots were measured with a handheld GPS. All plots were also have a measure of size given by the farmers. The GPS is more accurate than the self reported plot sizes. But we will attempt at first to use both measures in the end. The GPS measure was taken in meters, it is straightforward to convert to hectares. The self reported plot sizes are reported in multiple units you may or not recognize. Those can be converted straightforwardly with the conversion file. 
+This chapter is a guide to generating a dataset containing the plot areas of household plots from the Nigeria General Household Survey, Panel 2012-2013, Wave 2. During survey work a sub-sample of plots were measured with a handheld GPS. All plots have an area measurement which was self-reported by the farmers. The GPS is more accurate than the self reported plot area measurements. We will use the GPS and the self-reported measurements to generate the area dataset. 
+
+The final plot areas will be in hectares. The GPS measurements was taken in square meters, it is straightforward to convert square meters to hectares. The self reported plot sizes are reported in multiple units you may or not recognize. Those can be converted with the conversion file which is in the data handbook git repository. 
+
+The primary raw data file of plot areas is "sect11a1_plantingw2.dta" which can be found at "NGA_2012_GHSP-W2_v02_M_STATA/Post Planting Wave 2/Agriculture".
 
 ```{s}
 use "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Planting Wave 2/Agriculture/sect11a1_plantingw2.dta", clear
 ```
 
-The variables have coded names that refer to the question in the survey. You can access the survey instrument on the World Bank website and look up the question to see exactly how the question was put to the respondents. In the data the labels tell us something about what the variable measures. `Describe` outputs all variables' labels along with data type and more technical information about howo the variable is stored in the file. 
+The variables have coded names that refer to the section the question appears in the survey.  In **sect11a1_plantingw2.dta** the variables are labeled to describe what the variable measures. `Describe` outputs all variables' labels along with variable data type, i.e. string or double, and more technical information about how the variable is stored in the file. 
 
-We have used the `quietly` command to suppress stata from displaying output. You do not have to include the quietly command. We have included it to make the guide more user friendly and not filled with stata output.
+You may want to know exactly what questions the respondents were answering to understand what a variable measures. You can access the questionnaire on plot characteristics in \lsms-isa_data_handbook\questionnaire\PP_W2_Household_Questionnaire_Final.pdf on page 3 of "PP_W2_Household_Questionnaire_Final.pdf".
+
+***Note: In this guide we have used the `quietly` command to suppress stata from displaying output to make the guide more user friendly and not overwhelmed by stata output. You do not have to include the quietly command in your own cleaning code.***
 
 ```{s}
-	quietly describe
+	 describe
 ```	
 
-Each observation is a plot and plots are identified within a household by a plot id, and households are identified by a household ID. We can check if **hhid** and **plotid** uniquely identify the data with `Isid`, which will not return an output if the variables we suspect do uniquely identify the data and display an error if the data is not unique.
+Open the ***Data Editor (browser)***; this can be accessed by the ***Data*** tab in the stata menu, then the ***Data Editor*** option. Each observation is a row in the spreadsheet, and each observation represents data on a particular plot. A plot is identified from other plots belonging to a household by a plot ID, and a household is identified from other households by a household ID. We should be able to uniquely identify a plot by its household ID and its plot ID. We can check if **hhid** and **plotid** uniquely identify plots with `isid`. `Isid` will not return an output if the observations are identifiable by **hhid** and **plotid**, and the command displays an error if **hhid** and **plotid** do not uniquely identify the observations.
 
 ```{s}
 	sort 			hhid plotid
 	isid 			hhid plotid
 ```
 
+There is no error, therefore observations are uniquely identified by **hhid** and **plotid**.
+
 We now inspect the self reported plot size variable, **s11aq4a**. 
 
-`describe s11aq4a` to display the label in the data. The label is "FARMERS RECALL NUMBER". The recall number is the farmer's recollection of the size of their plot in their preferred unit. When in doubt about what a variable is measuring look at the documentation which tells you what question was asked to the farmer.
+`describe s11aq4a` to display the variable label. The label is "FARMERS RECALL NUMBER". The recall number is the farmer's recollection of the size of their plot in their preferred unit. When in doubt about what a variable is measuring look at the documentation which tells you what question was asked to the farmer.
 
 Rename the variable **s11aq4a** **plot_size_SR** and give it a clearer label.
 
@@ -41,7 +49,7 @@ Let's also rename the variable for the farmer's unit, **s11aq4b**. The label of 
 	lab var			plot_unit "self reported unit of measure"
 ```
 
-Now rename and label the variable of GPS plot areas, **s11aq4c**. 
+Now rename and label the variable of GPS measured plot areas, **s11aq4c**. 
 
 ```{s}
 	rename			s11aq4c	plot_size_GPS
@@ -50,81 +58,93 @@ Now rename and label the variable of GPS plot areas, **s11aq4c**.
 
 # Convert Plot Size to Hectares
 
-We need to merge in a land conversion file to convert the self reported land areas and the GPS measures into hectares. The conversion file is organized by geographic zones because the units are slightly different in each zone. Each variable in the conversion file is a conversion factor to hectares for a unit of land area measurement. We will merge the conversion files on zones. The merge will be a many to one merge. The merge is called many to one merge or `m:1` when one observation from the "using" file, the conversion file in our case, is matched to more than one observation in the "master" file, the main file.
+We need to merge in "land-conversion.dta" which is file that contains conversion factors to convert the self reported land area units and the GPS measures into hectares. The conversion file is organized by geographic zones because the units are slightly different in each zone. Each variable in the conversion file is a conversion factor to convert a unit of land area to hectares. We will merge the conversion file on zones. The merge will be a many to one merge. The merge is called a many to one merge or `m:1` when one observation from the "using" file, the conversion file in our case, is matched to more than one observation in the "master" file, the main file.
 
 ```{s}
 	merge 			m:1 	zone using 	"$root/wave_2/raw/land-conversion.dta"
 ```
-The variable **_merge** is made after a merge and assigns each observation a code if it was succesfully matched between the master and the using.
+The variable **_merge** is made after a merge and assigns each observation a code to denote if it was succesfully matched between the master and the using.
 
-Hopefully everything in the master was matched. Not everything in the using needs to match. If an observation in the using does not match this means that there is a conversion factor in the conversion file we do not need. Keep the observations that matched and drop all the unmatched observations if the number of unmatcehd was very small. Drop the **_merge** command if you are satisfied. Go back to the merge and look for code errors if many observations did not match. Common code errors are the wrong matching criteria, the wrong merge options, the wrong file.
+Hopefully everything in the master was matched. Not everything in the using needs to match. If an observation in the using does not match this means that there is a conversion factor in the conversion file we do not need. If the number of unmatcehd was very small keep the observations that matched and drop all the unmatched observations. Drop the **_merge** command if you are satisfied. If many observations did not match go back to the merge and look for code errors. Common code errors are the wrong matching criteria, the wrong merge options, and the wrong merging file.
 
 ```{s}
 	keep 			if 		_merge == 3
 	drop 			_merge
 ```
 
-Look at the the units the farmers used to measure their plots. They used heaps, ridges, stands, etc. 
-
-```{s}
-
-	quietly tab 			plot_unit
-```
-
-We are going to convert the units by multiplying the self reported size by a conversion factor. If plot unit is heaps then multiply **plot_size_SR** by **heapcon**. Do likewise for the other units.
-
-Self reported plot unit is encoded in the data with numbers and not words as it appears in the tab command. We have written the unit code and can tell you the code for each unit. We found the code by `sort plot_unit`, then going to the data browser, selecting a cell in **plot_unit** variable, and seeing the number displayed in the bar at the top of the data browser window. 
+We are going to convert the units to hectares by multiplying the self reported areas by a conversion factor and the converted data will be stored in a new variable called **plot_size_hec_SR**. If plot unit is heaps then multiply **plot_size_SR** by **heapcon**, **heapcon** is the number of heaps in a hectare. The conversion factor of other units follows the naming pattern **"unitname"con**.
 
 ```{s}
 	gen 			plot_size_hec_SR = .
 	lab var			plot_size_hec_SR 	"SR plot size converted to hectares"
 ```
+
+Look at the the units the farmers used to measure their plots. They used heaps, ridges, stands, etc. 
+
+```{s}
+	tab 			plot_unit
+```
+
+Self reported area units are encoded in the data with numbers and not words despite how **plot_unit** appears after the tab command. We have provided the unit code in this guide. You can find the code by using the command `sort plot_unit`, then going to the Data Editor (browser), selecting a cell in the **plot_unit** variable, and seeing the code displayed in the display bar at the top of the data browser window. 
+
+Heaps are `plot_unit == 1`
+
+```{s}
+	quietly replace 		plot_size_hec_SR = plot_size_SR*heapcon	if plot_unit == 1
+```
+
 Ridges are `plot_unit == 2`
+
 ```{s}
 	quietly replace 		plot_size_hec_SR = plot_size_SR*ridgecon	if plot_unit == 2
 ```
 
-Heaps are `plot_unit == 1`
-```{s}
-	quietly replace 		plot_size_hec_SR = plot_size_SR*heapcon	if plot_unit == 1
-```
 Stands are `plot_unit==3`
+
 ```{s}
 	quietly replace 		plot_size_hec_SR = plot_size_SR*standcon	if plot_unit == 3
 ```
+
 Plots are `plot_unit ==4`
+
 ```{s}
 	quietly replace 		plot_size_hec_SR = plot_size_SR*plotcon	if plot_unit == 4
 ```
+
 Acres are `plot_unit==5`
+
 ```{s}
 	quietly replace 		plot_size_hec_SR = plot_size_SR*acrecon	if plot_unit == 5
 ```
+
 Square meteres are `plot_unit==7`
+
 ```{s}
 	quietly replace 		plot_size_hec_SR = plot_size_SR*sqmcon		if plot_unit == 7
 ```
+
 Hectares are already in hectares so we don't need to convert them. The hectare code is `plot_unt == 6`
 
 ```{s}
 	quietly replace 		plot_size_hec_SR = plot_size_SR			if plot_unit == 6
 ```
 
-Most of the plots should now be in hectares but let's check for the missing ones. If they are missing and they have a unit we can convert then convert them. If they are not converted and they do not have a unit that does not appear in the conversion file then leave them missing. We should also replace any observations with "other unit", `plot_unit==8` and impute them later.
+Most of the plots should now be in hectares but let's check for unconverted one which will be missing in **plot_size_hec_SR**. If they are missing in **plot_size_hec_SR** and they are also missing in **plot_unit** or have a unit that does not have a conversion factor in the conversion file then we cannot convert them. We should also replace any observations with "other unit" `plot_unit==8` with missing.
 
 ```{s}
 	count			if plot_size_hec_SR == . 
 	quietly replace  		plot_size_hec_SR = . if plot_unit == 8
 ```
 
-We turn to the GPS measures. Check how many plots do not have a GPS.
+We turn to the GPS area measurements. Check how many plots do not have a GPS.
 
 ```{s}
 	count 			if plot_size_GPS == . 
 ```
-Quite a few do not have a GPS measure in this file. We should not delete these observations but impute them later. 
 
-Convert the GPS in square meters into hectares.
+Quite a few observations do not have a GPS measure. We should not delete these observations but impute them later, more about imputation later in this chapter. 
+
+Convert the non-missing GPS areas from square meters to hectares.
 
 ```{s}
 	gen 			plot_size_hec_GPS = .
@@ -132,55 +152,56 @@ Convert the GPS in square meters into hectares.
 	replace 		plot_size_hec_GPS = plot_size_GPS*sqmcon
 ```
 
-Look again the number of plot sizes that were not converted. Make sure they did not fail convert and had a plot size in square meters. The ones we cannot convert we will impute later
+Count the number of observations that were converted and those that were not converted. 
+
 ```{s}
 	count 			if plot_size_hec_GPS !=.
 	count			if plot_size_hec_GPS == . 
 ```
 
-How many observations have no self reported plot size and no GPS?
+How many observations do not have a self reported plot size and no GPS?
 
 ```{s}
 	count	 		if plot_size_hec_SR != . & plot_size_hec_GPS != .
 ```
-There are a lot of observations that lack both. This will prove a slight inconvenience because we intended to impute an estimate of the missing plot size variable, self reported and GPS, with the non-missing plot size variable. We obviously cannot do that if they are both missing. But we will find other ways to impute which we discuss in the dueness of course.
 
-# Impute the Missing Plot Sizes
+There are a lot of observations that lack both. This will prove a slight inconvenience because we intended to impute an estimate of the missing plot variable with the non-missing plot variable, we cannot do that if they are both missing. But we will find other ways to impute which we discuss in the dueness of course.
 
-Self reported plot size and GPS plot size measure the same thing so if they are both reported perfectly then the two variables should be identical or very close at least. But this is not often the case. Farmers sometimes have difficulty accurately recalling the size of their plot. 
+# Internally Validating the Data
 
-We can Check the correlation between self reported plot size and the GPS plot size with `pwcorr`.
+Self reported plot size and GPS plot size measure the same thing so if they are both 100% accurate then the two variables should be identical or very close at least. But this is not often the case. Farmers, especially, sometimes have difficulty accurately recalling the size of their plot. 
+
+We can check the correlation between self reported plot size and the GPS plot size with `pwcorr`.
 
 ```{s}
 	pwcorr 			plot_size_hec_SR plot_size_hec_GPS
 ```
 
-There is a low correlation between self reported plot size and GPS.
+There is a low correlation between self reported plot size and GPS measured plot size.
 
-`pwcorr` has several options to change the range of values we want the correlation calculated on. For instance we might suspect that an incorretly large self reported plot size will have a lower correlation with the GPS plot size. Calculate the correlation of self reported and GPS of all observations within 3 standard deviations of the mean of GPS. Two steps are involved. First, `summarize plot_size_hec_GPS` in detail. Second, command `pwcorr` and an if statement to denote the range we want to consider.
+`pwcorr` has several options to change the range of values we want the correlation to be calculated on. For instance we might suspect that at there are some mistakes in the upper end of one of the variables and perhaps this is causing the low correlation. We can calculate the correlation of self reported area and GPS area for all observations within three standard deviations of the mean of GPS. Two steps are involved. First, `summarize plot_size_hec_GPS` in `detail`. Second, `pwcorr` and an if statement range condition denoting the range of values we want to consider.
 
-The range command in full: `inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))`
+Here is the range condition in full: `inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))`
 
-Here is a breakdown of how to get the range command as an option after `pwcorr`. 
+`inrange()`; signals that we want to calculate the correlation on a specific range of observations. It can be a range, in practice this is a lower and upper bound, or just a lower bound or just an upper bound.
 
-`inrange()` signals that we want a specific range of observations to calculate the correlation on. It can be a range or a lower and upper bound, or just a lower bound or just an upper bound.
+`inrange(plot_size_hec_GPS,`; means that we want the range based on the values of "plot_size_hec_GPS".
 
-`inrange(plot_size_hec_GPS,` we want the range based on the values of "plot_size_hec_GPS".
+`inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)')`; the lower bound is three standard deviations, (3*`r(sd)'), below, -, the mean, `r(p50)'. 
 
-`inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)')` the lower bound is three standard deviations, (3*`r(sd)'), below, -, the mean, `r(p50)'. 
-
-`inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))` the upper bound is three standard deviations, (3*`r(sd)'), above, +, the mean, `r(p50)'
+`inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))`; the upper bound is three standard deviations, (3*`r(sd)'), above, +, the mean, `r(p50)'
 
 ```{s}
-	sum 			plot_size_hec_GPS, detail
+	quietly sum 			plot_size_hec_GPS, detail
 	pwcorr 			plot_size_hec_SR plot_size_hec_GPS if ///
 						inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))
 ```
-The correlation turns out to be even lower when we exclude outliers. Clearly the correlation is sensitive to the boundaries so try another range. Set the range to only observations within three standard deviations of both GPS and self reported. Summarize all the variables first before using their measures of central tendency.
+
+The correlation turns out to be even lower when we exclude outliers. The correlation appears to be sensitive to the boundaries so let's try another range. Set the range to only observations within three standard deviations of both GPS and self reported. You will have to summarize both the variables first before using their measures of central tendency.
 
 ```{s}
-	sum 			plot_size_hec_GPS, detail
-	sum 			plot_size_hec_SR, detail
+	quietly sum 			plot_size_hec_GPS, detail
+	quietly sum 			plot_size_hec_SR, detail
 	pwcorr 			plot_size_hec_SR plot_size_hec_GPS if ///
 						inrange(plot_size_hec_GPS,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)')) & ///
 						inrange(plot_size_hec_SR,`r(p50)'-(3*`r(sd)'),`r(p50)'+(3*`r(sd)'))
@@ -188,83 +209,83 @@ The correlation turns out to be even lower when we exclude outliers. Clearly the
 
 The correlation is even lower.
 
-Consider the observations we left out when we set the range. Examine larger plot sizes.
+Consider the observations we left out when we set the range; examine larger plot sizes.
 
 ```{s}
-
 		quietly tab				plot_size_hec_GPS 	if 	plot_size_hec_GPS > 2
 ```
+
 There are few plots larger than 2 hectares.
-```{s}
-
-	quietly tab				plot_size_hec_GPS 	if 	plot_size_hec_GPS > 20
-```{s}
-There are none greater than 20 hectares. There are no unreasonably large plots.
-
-Even so check the correlation at larger plot sizes.
-
 
 ```{s}
-	sum 			plot_size_hec_GPS, detail
+	tab				plot_size_hec_GPS 	if 	plot_size_hec_GPS > 20
+```
+
+There are none greater than 20 hectares. There are no unreasonably large plots according to the GPS data. Let's check the correlation at larger plot sizes.
+
+```{s}
+	quietly sum 			plot_size_hec_GPS, detail
 	pwcorr 			plot_size_hec_GPS plot_size_hec_SR 	if 	///
 						plot_size_hec_GPS > 3 & !missing(plot_size_hec_GPS)
 ```
 
-The correlation at larger plot sizes is higher than other ranges. But it is still low.
+The correlation at larger plot sizes is higher than other ranges, but it is still low.
 
 Compare the GPS and self reported variables side by side.
 	
 ```{s}
-
 	sum 			plot_size_hec_GPS
 	sum 			plot_size_hec_SR
 ```
 
-GPS tends to be smaller and more realistic. GPS is more accurate than self reported measures. GPS is more reliable than the self reported measures because at least we can say with confidence that the measurements were taken in the field by an enumerator with high precision instruments. We will not be using self reported because it has such a low correlation with the GPS measure which we are confident with.
+It appears that **plot_size_hec_GPS** tends to be smaller and more realistic than **plot_sizehec_SR**. GPS is more accurate than self reported measures. GPS is more reliable than the self reported measures because at least we can say with confidence that the measurements were taken in the field by an enumerator with high precision instruments. We will not be using self reported because it has such a low correlation with the GPS measure which we are confident with.
 
-Imputation replaces missing data with an estimate from the existing data. We use Predictive Mean Matching (PMM) imputation. We set out the steps taken in PMM imputation to provide context for the impute commands in Stata. 
+# Impute the Missing Plot Sizes
 
-We estimate the missing data with a least squares regression. The variable with the missing observations is the dependent variable. For each missing observation we obtain an estimated observation. The estimate is matched to 5 non-missing observations in the dependent variable that are closest to the estimated value. One of the 5 close observations is randomly chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more details on the process of imputation with household survey data.
+Imputation replaces missing data with an estimate of the missing data calculated from the data we do have. We use a particular type of imputing called Predictive Mean Matching (PMM) imputation. We set out the steps taken in PMM imputation to provide context for the impute commands in stata. 
 
-`Mi` (multiple imputation) is the Stata command for imputing. Set the data structure as wide or long. Our data is wide because a unique observation is identified by a unique row.
+We estimate a linear regression where the dependent variable is the variable with the missing values and the independent variables are predictors of the dependent variable. A variable which predicts plot area, for example, is geographic location because the plot sizes of neighbors are likely correlated. From the regression we get an estimate of the dependent variable, the estimated dependent variable includes linear estimates of the missing observations. Then, the estimate for each missing value is matched to the five closest non-missing observations in the dependent variable. One of the five non-missing observations is randomly chosen and temporarily stored. The estimating, matching, and randomization process repeats multiple times until there is a set of stored estimated values for each missing observation. The missing values are replaced with the average value of the elements of the set of estimates. See Kilic, et al 2017 for more details on the process of imputation with household survey data.
+
+The steps for imputating **plot_size_hec_GPS** in stata are as follows:
+
+`Mi` (multiple imputation) is the Stata command for imputing. `set wide` sets the imputation on a wide dataset, data can be wide or long. Our data is wide because a unique observation is identified by a row.
 
 ```{s}
-
 	mi set 			wide 
-```	
-Clear any time series settings you may have in place or else the time series will interfere with the linear regression we run later.
-```{s}
+```
 
+Clear any time series settings you may have in place or else the time series will interfere with the linear regression we run later.
+
+```{s}
 	mi xtset		, clear 
 ```
+
 Register ***plot_size_hec_GPS*** as the variable we will be imputing.
 	
 ```{s}
-
 	mi register 	imputed plot_size_hec_GPS
 ```
-Sort the data to ensure reproducibility. Sorting the data can be done at any stage before the actual imputation. Data is uniquely identified by ***hhid*** ***plotid*** ***cropid***. 
+
+Sort the data to ensure reproducibility. Data is uniquely identified by **hhid** and **plotid**. 
 
 ```{s}
-
 	sort			hhid plotid, stable 
 ```
 	
-Use predictive mean matching (pmm) to impute the data, the regression’s dependent variable is **plot_size_hec_GPS** and the independent variable is **i.state** (a dummy for each state). Set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing **plot_size_hec_GPS** observations to match to the estimate, for example we choose to match to the nearest 5 observations; "bootstrap" requests Stata sample the data with replacement and regress on the created random sample; "rseed(#)" specifies the random number seed used to create the sample. 
-
+Use predictive mean matching (pmm) to impute the data, the regression’s dependent variable is **plot_size_hec_GPS** and the independent variable is **i.state** (a dummy for each state). Set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing **plot_size_hec_GPS** observations to match to the estimate for a missing observation, for example we choose to match to the nearest 5 non-missing observations; "bootstrap" is an option for stata to sample the data with replacement and regress on the created random sample; "rseed(#)" specifies a random number seed used to simulate randomness in the bootstrap sampling process. 
 
 ```{s}
 	quietly mi impute 		pmm plot_size_hec_GPS i.state, add(1) rseed(245780) noisily dots ///
 						force knn(5) bootstrap
 ```
-Declare the imputing to be over:
+
+The imputation is done, declare the imputing to be over:
 
 ```{s}
-
 	quietly mi unset
 ```
 	
-Use `tabstat` to compare the imputed plot size (**plot_size_hec_GPS_1_**) to the original plot size (**plot_size_hec_GPS**). The "tabstat" command compares two or more variables on the parameters of our choice, for example we want to see the number of observations in each variable, “n”, the mean, “mean”, and the minimum and the maximum, “min” and “max”. `Tabstat` is a versatile command and the researcher can choose to report the statistics of their choice. 
+Use `tabstat` to compare the imputed plot size (**plot_size_hec_GPS_1_**) to the original plot size (**plot_size_hec_GPS**). The "tabstat" command compares two or more variables on the parameters of our choice; for example we want to see the number of observations in each variable so we specify “n”; and we want to see the mean so we specify “mean”; and we want to compare the minimum and the maximum so we specify “min” and “max”. `Tabstat` is a versatile command and the researcher can choose to report the statistics of their choice. 
 
 ```{s}
 	quietly tabstat 		plot_size_hec_GPS plot_size_hec_SR plot_size_hec_GPS_1_, ///
@@ -272,35 +293,39 @@ Use `tabstat` to compare the imputed plot size (**plot_size_hec_GPS_1_**) to the
 						longstub format(%9.3g)
 ```
 
-Do the changes look reasonable? If they are reasonable then we can replace the missing values with the imputed values.
+Do the changes in the imputed variable look reasonable? Reasonableness is for starters that the imputed variable has not exacerbated the issues we tried to fix in the first place. Reasonableness in general is at your descretion. If they are reasonable then we can replace the missing values with the imputed values. ***Note: imputation will only replace missing values, non-missing values will not be replaced during imputation.***
 
 ```{s}
 	replace			plot_size_hec_GPS = plot_size_hec_GPS_1_
 ```
 
-Are there any more missing plot sizes? 
+Are there any more observations missing plot sizes? 
 
 ```{s}
 count  				 if plot_size_hec_GPS == .
 ```
-Rename our main variable.
+
+There are none.
+
+Rename our main variable to "plotsize".
+
 ```{s}
 	rename			plot_size_hec_GPS_1_ plotsize
 	lab	var			plotsize	"plot size (ha)"
 ```
 
-We want the data set to only have the variables we are interested in using so we should drop the ones we are not using. There are more variables we want to drop so we can use `keep` to keep the ones we want and drop everything else.
+We want the data set to only have the variables we cleaned and are interested in using so drop the ones we are not using. There are more variables we want to drop than keep so we can use `keep` to keep the ones we want and drop everything else.
 
 ```{s}
 	keep  			hhid zone state lga hhid ea plotid plotsize
-
 ```
+
+We can now save the data in the clean dataset. The cleaned data file contains the area of the plots recorded in Nigeria General Household Survey, Panel 2012-2013, Wave 2.
 
 ```{s}
 	save "$root/wave_2/refined/sect11a1_plantingw2.dta", replace	
 ```
-
 	
-Citations
+#Citations
 
 Kilic, T., Zezza, A., Carletto, C., & Savastano, S. (2017). Missing (ness) in action: selectivity bias in GPS-based land area measurements. World Development, 92, 143-157.

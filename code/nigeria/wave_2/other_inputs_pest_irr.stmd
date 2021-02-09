@@ -1,8 +1,10 @@
-% Generating Irrigation and Pesticide inputs in Nigeria General Household Survey, Panel 2012-2013, Wave 2
+% Generating Irrigation and Pesticide Inputs in Nigeria General Household Survey, Panel 2012-2013, Wave 2
 % Emil Kee-Tui 
 % `s c(current_date)`
 
-Farm output is likely to be positively affected by irrigation and whether pesticide was applied. This chapter guides the creation of the binary variable for irrigation and pesticide use. The dataset contains information on the type of irrigation, and how many season during the year the plot is irrigated, and if the plot is irrigated. We do not have a fine measure of the water output of the irrigation system. Not all wells are the same, two wells may be capable of producing different volumes of water, volume of water produced an hour is an accurate measure of the usefulness of an irrigation system, we do not have volume per hour, so including a variable for the type of irrigation system is not of much help at calculating output of irrigatino. We can be sure that some type of irrigation will at least have a non-deterimental effect on production, some irrigation will likely improve production, so we should include a binary for irrigation in our estimation. 
+Irrigation, fertilizers, and pesticide are sometimes used to succesfully to increase farm output. Although incorrect application of fertilizer can reduce its effectiveness, it is generally agreed that fertilizer does not negatively affect output. This chapter creates variables that indicate if irrigation or fertilizer or pesticide was used on a plot. 
+
+We start with irrigation. The raw data contains information on the type of irrigation system, how many seasons during the year the plot was irrigated, and if the plot is irrigated. We do not have a measure of the water output of the irrigation system. Volume of water produced an hour is an good measure of the effectiveness of an irrigation system. Consider wells; not all wells are the same, two wells may be capable of producing different volumes of water. We do not have volume per hour so we cannot make a variable for the effectiveness of an irrigation system. We can be sure that some type of irrigation will at least have a non-deterimental effect on production, some irrigation will likely improve production, so we include a binary variable for irrigation to denote whether irrigation was or was not present on the plot. 
 
 The file we want to use is **sect11b1_plantingw2.dta**. The file contains a lot of variables that do not relate to irrigation, we will drop those extra variables at the end and have a streamlined dataset on irrigation.
 
@@ -10,42 +12,44 @@ The file we want to use is **sect11b1_plantingw2.dta**. The file contains a lot 
 use "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Planting Wave 2/Agriculture/sect11b1_plantingw2.dta", clear
 ```
 
-The irrigation information relates to irrigation on a single plot belonging to a household. We will eventually want to merge the irrigation data with labor, output, other inputs, etc. It makes sense that we want to match plot inputs to plot outputs. Observations are identified geographically by zone, state, LGA, sector, EA, and then identified by a household ID number and a plot ID. Houshold id's are unique across the dataset, while plot id's are unique to the households, so we can uniquely identify plots by the household id and then by the plot id. 
+The irrigation data relates to irrigation use on at the plot-level. If you were to pull up the data editor in stata then every row is a plot belonging to a household. 
 
-We can confirm that we can uniquely identify by the household id and then by the plot id by the `isid` command. `isid` will produce no output if we can uniquely identify the data by **hhid** and **plotid**, or else an error will be displayed if we cannot uniquely identify the data in that way.
+We will eventually want to merge the irrigation data with labor, output, other inputs, etc. It makes sense that we want to match plot inputs to plot outputs. Observations are identified geographically by zone, state, LGA, sector, EA, and then identified by a household ID number and a plot ID. Houshold ID's are unique across the dataset, while plot ID's are unique to the households, so we can uniquely identify a plot within the data its household ID and then by its plot ID. We can confirm that household ID and plot ID uniquely identify a plot within the dataset with the `isid` command. `isid` will display no output in the stata output window if the observations are uniquely identifed by **hhid** and **plotid**; an error will be displayed if the data cannot be uniquely identifed in that way.
 
 ```{s}
 	isid			hhid plotid
 ```
 
-The variable **s11b1q39** is a simple binary showing if that plot is irrigated. Let's rename in order to determine the purpose of the variable without having to look at the label, we'll also change the label to pricisely tell us how the binary is encoded. The binary displays 'Yes' or 'No', the actual data is encoded with '1' and '2' for yes-no.
+We got no output so we can conclude that **hhid** **plotid** uniquely identifies each plot.
+
+The variable **s11b1q39** is a binary variable to denote if a plot has any irrigation at all. We would not know about the data contained in the variable just by reading its generic name, the variable's label gives more information. If it's still not clear from the label what the variable refers to then look up the questions which repondents were asked on page 9 of "PP_W2_Agriculture_Questionnaire_Final.pdf" in the "\questionnaires" folder of LSMS-ISA data handbook, "\lsms-isa_data_handbook\questionnaires\PP_W2_Agriculture_Questionnaire_Final.pdf". Let's rename the variable with a name that tells us more about what the variable does. We'll also change the label to pricisely tell us how the binary is encoded. The binary displays 'Yes' or 'No', the actual data is encoded with '1' and '2' for yes and no respectively.
 
 ```{s}
 	rename			s11b1q39 irr_any
 	lab var			irr_any "=1 if any irrigation was used"
 ```
 
-Some observations are missing for a number of reasons. Without other irrigation data on the missing observations we have to assume that the missing variables are missing because there is no irrigation on that plot. So let's change the missing observations to '2' for 'no'.
+Some observations are missing a yes or a no. Without other irrigation data on the missing observations to suggest that there was irrigation on those plots we have to assume that there was no irrigation on those plots. Let's change the data of the missing observations to '2' for a 'no' response.
 
 ```{s}
-	count if			irr_any==.
+	count if		irr_any == .
 	replace			irr_any = 2 if irr_any == .
 ```
 
-We are done with the input variables relating to irrigation. Clean up the dataset dropping all variables except the **irr_any** variable and id variables.
+We are done with the input variables relating to irrigation. Clean up the dataset, dropping all variables except the **irr_any** variable and ID variables.
 	
 ```{s}
-	keep 			hhid zone state lga sector hhid ea plotid irr_any tracked_obs
+	keep 			hhid zone state lga sector hhid ea plotid irr_any
 ```
 
-Just before saving we want to make a **plot_id** variable that uniquely identifies the observations by the hhid and the plotid. We use the `egen` function to create a new variable that groups the **hhid** and **plotid** into one number.
+Just before saving we want to make a **plot_id** variable that uniquely identifies the observations by **hhid** and **plotid**. We use the `egen` function to create a new variable that groups **hhid** and **plotid** into one ID.
 
 ```{s}
 	egen			plot_id = group(hhid plotid)
 	lab var			plot_id "unique plot identifier"
 ```
 
-Now we have everything lets save the file into a new file location for all the cleaned datasets.
+Now we have everything let's save the file to the clean dataset location.
 
 ```{s}
 	save "$root/wave_2/refined/pp_sect11b1.dta", replace	
@@ -53,27 +57,28 @@ Now we have everything lets save the file into a new file location for all the c
 
 # Pesticide and Herbicide
 
-We will produce two binary variables for herbicide and pesticide that shows "yes" if herbicide or pesticide was used on the plot. The file contains a variable for the amount of pesticide and herbicide used, the amount of pesticide and pesticide is significant to the effect of the pesticide and herbicide. However there are very few plots which received pesticide or herbicide, herbicide was applied to 11 plots and pesticide was applied to 6 plots. There are too few instances of herbicide or pesticide application in order to be statistically signicant or draw a statistical conclusion about their effect on production. Pesticide and herbicide variables will be less useful in this dataset, so we will not take the additional steps to prepare more variables relating to pesticide and herbicide for this particular dataset.
+We will produce two binary variables to indicate if herbicide or pesticide were used on the plot. The data contains a variable for the amount of pesticide and herbicide used, the amount of pesticide and pesticide is significant to the effect of the pesticide and herbicide. However there are very few plots which received pesticide or herbicide, herbicide was applied to 11 plots and pesticide was applied to 6 plots. There are too few instances of herbicide or pesticide application in order to be statistically signicant or draw a statistical conclusion about their effect on production. Pesticide and herbicide variables will be less useful in this dataset, so we will not take the additional steps to prepare variables of the amount of pesticide and herbicide used.
 
-The file we want to use is **sect11c2_plantingw2.dta**. The file contains a number of variables we will mostly discard.
+The file we want to use is **sect11c2_plantingw2.dta**. The questionnaire for this section is page 14 of "PP_W2_Agriculture_Questionnaire_Final.pdf" in the "\questionnaires" folder of LSMS-ISA data handbook, "\lsms-isa_data_handbook\questionnaires\PP_W2_Agriculture_Questionnaire_Final.pdf".
+
 ```{s}
 	use "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Planting Wave 2/Agriculture/sect11c2_plantingw2.dta", clear
 ```
 
-The data is at the household-plot level, this means each household has a unique ID and each plot used or belonging to a household is uniquely identified within the household. We should be able to identify the observations by the household ID and then the plot ID. We can confirm the data structure with the `isid` command, which will not produce a display if the data is uniquely identified by household ID and plot ID.
+The data is at the plot level. Each household has a unique ID and each plot used or belonging to a household has a unique ID amoungst all the other plots owned or used by the household. We should be able to identify the observations by the household ID and then the plot ID. We can confirm the data structure with the `isid` command.
 
 ```{s}
 	isid			hhid plotid
 ```
 
-The variable **s11c2q1** is a binary asking if pesticide was used on the plot. We should rename the variable so we know what it relates to without having to look at the label, we will also want to relabel it.
+The variable **s11c2q1** is a binary variable asking if pesticide was used on the plot. We should rename the variable so we know what it relates to without having to look at the label, we will also want to label it.
 
 ```{s}
 	rename			s11c2q1 pest_any
 	lab var			pest_any "=1 if any pesticide was used"
 ```
 
-The variable **s11c2q10** is a binary asking if herbicide was used on the plot. Rename it as well and relabel it too.
+The variable **s11c2q10** is a binary variable asking if herbicide was used on the plot. Rename it as well and label it too.
 
 ```{s}
 	rename			s11c2q10 herb_any
@@ -89,27 +94,27 @@ The variable **s11c2q2a** relates to the quantity of pesticide and **s11c2q11a**
 	rename 			s11c2q11a 	herb_quant
 ```
 
-We want to look at the observations for quantity for missing variables. That is done by `tab` which displays data in the observation, for the observations that meet our criteria, which is the criteria that the associated pest_any or herb_any observation is missing.
+We want to look at the quantity variables for any observation missing in **pest_any** or **herb_any**.
 
 ```{s}
 	tab 			pest_quant  if pest_any == .
 	tab 			herb_quant 	if herb_any == .
 ```
 
-There are no observations, meaning that the observations are correctly missing, so lets change the missing observations to the binary response for **pest_any** and **herb_any** to "no".
+There are no observations meaning that the observations are correctly missing. Let's change the missing observations for **pest_any** and **herb_any** to "no".
 
 ```{s}
 	replace			pest_any = 2 if pest_any == .
 	replace			herb_any = 2 if herb_any == .
 ```
 
-We are finished making the pesticide and herbicide binary. So, drop all the variables we do not need and save the data in the file for cleaned data.
+We are finished making the pesticide and herbicide binary. Drop all the variables we do not need and save the data in the folder for cleaned data.
 	
 ```{s}
-	keep 			hhid zone state lga sector hhid ea plotid pest_any herb_any tracked_obs
+	keep 			hhid zone state lga sector hhid ea plotid pest_any herb_any
 ```
 
-Just before saving we want to make a **plot_id** variable that uniquely identifies the observations by the hhid and the plotid. We use the `egen` function to create a new variable that groups the **hhid** and **plotid** into one number.
+Just before saving we want to make a **plot_id** variable that uniquely identifies the observations by the **hhid** and the **plotid**. We use the `egen` function to create a new variable that groups the **hhid** and **plotid** into one number.
 
 ```{s}
 	egen			plot_id = group(hhid plotid)

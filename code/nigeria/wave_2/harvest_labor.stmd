@@ -2,23 +2,24 @@
 % Author: Emil Kee-Tui 
 % `s c(current_date)`
 
-The labor data in the Nigeria General Household Survey, Panel 2012-2013, Wave 2 consists of planting labor and post planting labor. Data on labor was collected during two visits post-planting and post-harvest. Planting labor and post planting labor are in two different files. This chapter covers the steps we took to clean the harvest labor input data and produce a final variable that is the sum of all labor days worked on a plot in the harvest season.
+The labor data in the Nigeria General Household Survey, Panel 2012-2013, Wave 2 was gathered in two different periods: after planting and after harvest. There are two seperate data files in the raw data with labor inputs: planting labor and post planting labor. We demonstrate the steps taken to clean the harvest labor data.
 
-The data does not differentiate the types of activities that might take place during the harvest period so the final harvest labor should just be considered a measure of aggregate labor used on the plot during the harvest season. The labor recorded in this file relates to all activities involved in the harvest. The data refers to labor inputs at the plot level. The data is therefore at the plot level and an observation can be identified by its **plot_id** and its **hhid**.
+The harvest labor data was collected during the survey administered after the harvest. The survey did not ask respondents to specify the exact tasks that labor was performing. We assume the labor in this data set was employed to do all the tasks that take place during the harvest season such as harvesting and threshing. The labor is at the plot level, meaning it is the number of person hours employed on a particular plot. The labor is caterogrized by who supplied the labor such as family, hired, and exchange. We want to produce a variable that is the sum of all family labor, hired labor, and exchanged labor employed on a plot for the planting season.
 
 ```s/
 use "$root/wave_2/raw/NGA_2012_GHSP-W2_v02_M_STATA/Post Harvest Wave 2/Agriculture/secta2_harvestw2.dta", clear
 ```
 
-`Describe` the data will display the variables' names and the data labels. The variables names are somewhat obtuse because they are named with reference to the survey instrument, namely what section and order the question appears in the survey. The name is used to look up the question in the survey and read exactly how the question was asked to the respondent.
+`Describe` the data to display the names of all the variables and the data labels. The variables are named accoridng to the survey instrument and you will not be able to determine what the variable refers to without looking at the label or looking up the surveys. The surveys have been included in the git repository in the "\questionnaires" folder. See "C:\Users\emilk\git\lsms-isa_data_handbook\questionnaires\PH_W2_Agriculture_Questionnaire_Final.pdf" page 10 to view the actual questions that were asked of survey respondents.
 
-Take notice, we use the `quietly` command in front of most of our commands because we want to suppress stata from displaying output. We include `quietly` to make our guide look user friendly. We recommend you do not include the 'quietly' command so you can see the output. 
+
+***Note: We use the `quietly` command in front of most of our commands to suppress stata from displaying the output. We include `quietly` to make the guide look user friendly. We recommend you do not include the 'quietly' command so you can see the output. 
 
 ```s/
 	quietly describe
 ```
 
-All plots belong to a household, so we can uniquely identify an observation in the data by the household id and then the plot id. Verify that household id and plot id uniquely identify the data using `isid`. `Isid` will not return an output if household id and plot id uniquely identify the data, however an error code will be displayed if the data is not identified in the way we suspect.
+Open the ***Data Editor (browser)***; this can be accessed by the ***Data*** tab in the stata menu, then the ***Data Editor*** option. Each observation is a row in the spreadsheet, and each observation represents data on a particular plot. A plot is identified from other plots belonging to a household by a plot ID, and a household is identified from other households by a household ID. We should be able to uniquely identify a plot by its household ID and its plot ID. We can check if **hhid** and **plotid** uniquely identify plots with `isid`. `Isid` will not return an output if the observations are identifiable by **hhid** and **plotid**, and the command displays an error if **hhid** and **plotid** do not uniquely identify the observations.
 
 ```{s}
 	sort			hhid plotid
@@ -27,17 +28,18 @@ All plots belong to a household, so we can uniquely identify an observation in t
 
 # Household Labor
 
- Up to four family member's labor is recorded on each plot. There is a variable for days worked per week and weeks worked per year. To get the total hours worked in a year multiply the days worked per week by the weeks worked per year. Create a varaible that is the harvest season labor supplied by each member of the family.
+We are going to create a varaible that is the harvest season labor supplied by each member of the family. Labor supplied by up to four family members was recorded for each plot. The quantity of labor supplied by each family members is recorded in two variables: days worked per week and weeks worked per year. To get the total amount of hours supplied for post harvest activities in a year by one member of the household we multiply the days worked per week by the weeks worked per year.
 
 Variable "sa2q1a2" is the number of days per week for household member 1 on a specific plot.
 Variable "sa2q1a3" is the number of weeks per year household member 1 supplied to a specific plot.
-Labor from other family memebers differs from the names of the two previous variables by the penultimate letter.
+
+The name of the variables for the labor supplied by family member #1 is ***sa2q1a...***; the name of the variables for the labor supplied by family member #2 is ***sa2q1b...***; the name of the variables for the labor supplied by family member #3 is ***sa2q1c...***; the name of the variables for the labor supplied by family member #4 is ***sa2q1d...***.
 
 ```{s}
 	quietly gen				hh_1 = (sa2q1a2 * sa2q1a3)
 ```
 
-Plots that did not have family labor will return a missing value, replace those missing values with a 0. We should replace those missing values with a 0 because missing values cannot have mathematical operations performed on them. Replace those missing values with a 0. 
+Plots that did not have family labor will return a missing value when we generate **hh_**. We should replace those missing values with a zero because missing values cannot have mathematical operations performed on them. 
 
 ```{s}
 	quietly replace			hh_1 = 0 if hh_1 == .
@@ -56,11 +58,11 @@ Plots that did not have family labor will return a missing value, replace those 
 
 # Hired Labor
 
-The data contains variables for the number of men, women, and children who were hired to work on the plot and the number of days men, women and children worked on the plot. Ideally we would construct hired labor days by multiplying the number of people hired by the days they worked, but the data does not tell us the number of people who worked during each day the plot used hired labor. Therefore we use the number of days hired labor worked on a plot as a measure of hired labor.
+Ideally we would construct hired labor supply for a plot by multiplying the number of people hired with the number of days they worked, but the data only gives us the total number of people hired and the total days hired labor worked. It may be that not everyone who was hired was employed all at one time, meaning it would be erroneous to get the total hired labor days by multiplying the number of people hired by the number of days worked by hired people. Therefore we use the number of days hired labor worked on a plot as a measure of hired labor.
 
-Hired labor is recorded as male labor days, female labor days and child labor days. We do not include hired child labor days.
+Hired labor is recorded as male labor days, female labor days, and child labor days. We do not include hired child labor days.
 
-Make a hired men labor days and a hired women labor days variable.
+Make a labor days supplied by hired men variable and a labor days supplied by hired women variable.
 	
 ```s/
 	quietly gen				men_days = sa2q3
@@ -72,24 +74,23 @@ Make a hired men labor days and a hired women labor days variable.
 
 # Exchange/Free Labor
 
-The harvest data recorded exchange/free labor as an additional source of labor besides the hired and family labor. The exchange/free labor worked on the household's plot but was not paid like hired labor, or part of the family but came from another household. The receiving household would return the favor by supplying labor to the other household. 
+The harvest data recorded exchange/free labor as an additional source of labor to hired and family labor. The exchange/free labor worked on the household's plot but was not paid like hired labor, or part of the family. The receiving household would return the favor by supplying labor to the other household. Although the exact responsibilities, terms, and nature of the system labor exchange varies from community to community. Exchange/Free labor for our purposes is fundamentally labor supplied to the farm and must be included in the total plot labor variable.
 	
-We are going to group the free/exchange labor days togther irrespective of gender although the data asks for free men and women days.
+We are going to group the free/exchange labor days togther irrespective of gender although the data divides men and women exchange/free days. We are also not going to include the child free/exchange labor.
 
-Replace the missing observations with 0's.
+Replace the missing observations with zero's.
 
 ```s/
-	replace			sa2q12a = 0 if sa2q12a == .
-	replace			sa2q12b = 0 if sa2q12b == .
+	quietly replace			sa2q12a = 0 if sa2q12a == .
+	quietly replace			sa2q12b = 0 if sa2q12b == .
 
-	gen				free_days = (sa2q12a + sa2q12b)
-	replace			free_days = 0 if free_days == . 
+	quietly gen				free_days = (sa2q12a + sa2q12b)
+	quietly replace			free_days = 0 if free_days == . 
 ```
 
-	
 # Impute labor Outliers
 
-As part of cleaning the data we have to remove values of labor use that are too high and were possibly recalled incorretly. Palacios-Lopez et al. (2017) studied labor days used to complete certain farming activities in Nigeria and we will use the upper bounds in their study to bound our labor data. 
+As part of cleaning the data we have to remove values of labor use that are too high and are unreliable. Palacios-Lopez et al. (2017) studied the number of labor days used to complete certain farming activities in Nigeria and found an average amount of time spent on each task. We will use the number of days in their study as the upper bounds our labor data. 
 
 Per Palacios-Lopez et al. (2017) in Food Policy, we cap individual labor day contributions per activity in the following ways:
 
@@ -97,18 +98,18 @@ Per Palacios-Lopez et al. (2017) in Food Policy, we cap individual labor day con
  7 days * 26 weeks = 182 days for weeding and other non-harvest activities
  7 days * 13 weeks = 91 days for harvesting
 
-We take these caps to be the upper bound for harvest labor use in the Nigeria. We want to remove the observations outside the boundary because they are too high and a possible error of recall. When they exceed their caps we will replace them with a missing value and impute them.
+We want to remove the observations outside the boundary and we will replace them with a missing value and impute them.
 
-Imputation replaces missing data with an estimate from the existing data. We use Predictive Mean Matching (PMM) imputation. We set out the steps taken in PMM imputation to provide context for the impute commands in Stata. 
+Imputation replaces missing data with an estimate of the missing data calculated from the data we do have. We use a particular type of imputing called Predictive Mean Matching (PMM) imputation. We set out the steps taken in PMM imputation to provide context for the impute commands in stata. 
 
-We estimate the missing data with a least squares regression. The variable with the missing observations is the dependent variable. For each missing observation we obtain an estimated observation. The estimate is matched to 5 non-missing observations in the dependent variable that are closest to the estimated value. One of the 5 close observations is randomly chosen to replace the missing observation. The process repeats multiple times until there is a set of estimated values of the missing observation. Replace the missing variable with the average of all estimates from all iterations. See Kilic, et al 2017 for more details on the process of imputation with household survey data.
+We estimate a linear regression where the dependent variable is the variable with the missing values and the independent variables are predictors of the dependent variable. A variable which predicts labor use, for example, is geographic location because income and plot size is a determinant of labor use and neighbors are more likely to have correlated incomes and plot sizes. From the regression we get an estimate of the dependent variable, the estimated dependent variable includes linear estimates of the missing observations. Then, the estimate for each missing value is matched to the five closest non-missing observations in the dependent variable. One of the five non-missing observations is randomly chosen and temporarily stored. The estimating, matching, and randomization process repeats multiple times until there is a set of stored estimated values for each missing observation. The missing values are replaced with the average value of the elements of the set of estimates. See Kilic, et al 2017 for more details on the process of imputation with household survey data.
 	
-Summarize the labor variables we created and compare them to the caps we set out at the start.
+The labor supply caps for harvest labor are 91 + 182 = 270. Summarize the labor variables we created and compare them to the caps.
 
 ```s/
 	sum				hh_1 hh_2 hh_3 hh_4 men_days women_days free_days
 ```
-There are observations in the household labor variables that work more days than the harvest season lasts according to per Palacios-Lopez et al. (2017) in Food Policy.
+There are observations in the household labor variables that work more days than the harvest season lasts according to Palacios-Lopez et al. (2017) in Food Policy.
 	
 Create a local for the labor variables that contain outliers.	
 
@@ -116,7 +117,7 @@ Create a local for the labor variables that contain outliers.
 	loc				labor hh_1 hh_2 hh_3 hh_4 women_days
 ```
 
-The cap for the harvest season is 90 days.
+We are going to replace the observations that exceed the labor cap with a missing value. We are going to replace those missing values later. We can use a loop to make the replacements on all the variables that exceed the cap. The cap for the harvest season is 90 days.
 
 ```s/
 	quietly foreach var of loc labor {
@@ -126,20 +127,30 @@ The cap for the harvest season is 90 days.
 	}
 ```
 
-The first step is to set stata to imputating and state the data structure. The stata impuation command is `Mi` (multiple imputation), the data structure is wide. Data can be wide or long. Our data is wide because a unique observation is identified by a unique row.
+Here we lay out the steps taken for imputation:
+
+The first step is to set stata to imputation and state the data structure. The stata impuation command is `Mi` (multiple imputation), the data structure is wide. Data can be wide or long. Our data is wide because a unique observation is identified by a unique row.
 
 ```{s}
-
 	quietly mi set 			wide 
 ```	
 	
 Clear any time series settings you may have in place or else the time series will interfere with the linear regression we run later.
 
 ```{s}
-
 	mi xtset		, clear 	
 ```
-We will loop the impuation over the local we made a little earlier to save time imputing each one by itself.
+
+We will loop the impuation over the "labor" local we made a little earlier to save time imputing each one by itself. We write the actual impuation command in its entirity and then break it down after the command has been run.
+
+```{s/}
+	quietly foreach var of loc labor {
+		mi register			imputed `var'
+		sort				hhid plotid, stable
+		mi impute 			pmm `var' i.state, add(1) rseed(245780) ///
+								noisily dots force knn(5) bootstrap
+	}
+```
 
 `foreach var of loc labor` asks stata to run the loop on each(`foreach`) variable(`var`) in the local(`of loc`) called labor.
 
@@ -156,16 +167,7 @@ And finally imputing. Since imputing is a process of estimation it is natural th
 		mi impute 			pmm `var' i.state, add(1) rseed(245780) noisily dots force knn(5) bootstrap
 
 The additional options are the type of regression which is predictive mean matching (pmm), set option "force" to enable the regression to run even if an error occurs; "knn(#)" determines the number of non-missing observations in the dependent to match with the estimate, we choose to match to the nearest 5 observations; "bootstrap" requests Stata sample the data for the simple regression with replacement and regress on the created random sample; "rseed(#)" specifies the random number seed used to create the sample. 
-
-
-```{s/}
-	quietly foreach var of loc labor {
-		mi register			imputed `var'
-		sort				hhid plotid, stable
-		mi impute 			pmm `var' i.state, add(1) rseed(245780) ///
-								noisily dots force knn(5) bootstrap
-	}
-```
+		
 
 The imputing should be over so we unset it.
 
@@ -193,8 +195,8 @@ Now you can replace the appropriate variables with the imputed variables.
 Make the planting period labor variable by adding together the labor of all the household members, the hired men, the hired women days, and the free days.
 
 ```{s}
-	egen			hrv_labor = rowtotal(hh_1 hh_2 hh_3 hh_4 men_days women_days free_days)
-	lab var			hrv_labor "total labor at harvest (days)"
+	quietly egen			hrv_labor = rowtotal(hh_1 hh_2 hh_3 hh_4 men_days women_days free_days)
+	quietly lab var			hrv_labor "total labor at harvest (days)"
 ```
 
 There should be no missing observations for `hrv_labor` but let's check them to be sure.
@@ -209,16 +211,22 @@ We want the data set to only have the variables we are interested in using so we
 	keep 			hhid zone state lga sector hhid ea plotid hrv_labor 
 ```
 
-Lastly, before saving generate a plot id to identify each plot in the data. Since the data is organized by household id and then plot id we should combine those to make a unique id variable.
+Lastly, before saving generate a plot ID to identify each plot in the data. Since the data is organized by household ID and then plot ID we should combine those to make a unique ID variable.
 
 ```{s}
 	isid			hhid plotid
 	sort			hhid plotid
-	egen			plot_id = group(hhid plotid)
-	lab var			plot_id "unique plot identifier"
+	quietly egen			plot_id = group(hhid plotid)
+	quietly lab var			plot_id "unique plot identifier"
 ```{s}
 
 
 ```{s}
-	quietly save "$root/wave_2/refined/ph_secta2.dta", replace	
+	save "$root/wave_2/refined/ph_secta2.dta", replace	
 ```
+
+Citations
+
+Kilic, T., Zezza, A., Carletto, C., & Savastano, S. (2017). Missing (ness) in action: selectivity bias in GPS-based land area measurements. World Development, 92, 143-157.
+
+Palacios-Lopez, A., Christiaensen, L., & Kilic, T. (2017). How much of the labor in African agriculture is provided by women?. Food policy, 67, 52-63.
