@@ -61,7 +61,7 @@ Now rename and label the variable of GPS measured plot areas, **s11aq4c**.
 We need to merge in "land-conversion.dta" which is file that contains conversion factors to convert the self reported land area units and the GPS measures into hectares. The conversion file is organized by geographic zones because the units are slightly different in each zone. Each variable in the conversion file is a conversion factor to convert a unit of land area to hectares. We will merge the conversion file on zones. The merge will be a many to one merge. The merge is called a many to one merge or `m:1` when one observation from the "using" file, the conversion file in our case, is matched to more than one observation in the "master" file, the main file.
 
 ```{s}
-	merge 			m:1 	zone using 	"$root/wave_2/raw/land-conversion.dta"
+	merge 			m:1 	zone using 	"$hndk/land-conversion.dta"
 ```
 The variable **_merge** is made after a merge and assigns each observation a code to denote if it was succesfully matched between the master and the using.
 
