@@ -9,7 +9,7 @@ The guide combines the code, the explanations of the code, and the output in a s
 
 ***Instructions for Mac OS users are below the instructions for Microsoft Windows***
 
-## For Microsoft Windows
+## For Microsoft Windows:
 
 ##  Getting Started: Setting Up A Dev Environment  
 
@@ -27,15 +27,11 @@ The git repository contains the guide document code, "nigeria_handbook.do" for c
    ```
    After the github has located repository select the `clone repository` button.
    
- 3. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. You will need to create an account with the World Bank if you do not already have one.
- 
- The dataset file is called NGA_2012_GHSP-W2_v02_M_STATA. ***Extract the entire file NGA_2012_GHSP-W2_v02_M_STATA and copy or move it to*** `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw` - the folders in this path were created by the project.do.
-   
- 4. Open the "project.do"
+3. Open the "project.do"
  
   Once the repository has been cloned to your local, locate in the "lsms-isa_data_handbook" file in the local "git" folder the "project.do" and open "project.do" in stata.
    
- 5. Edit the "project.do"
+4. Edit the "project.do"
  
    The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset. We have to do a bit of global path editing on "project.do" to work for your unique local computer username. The edits are specific to your computer and will allow the "project.do" file to use and create the paths on and for your local computer.
    
@@ -53,16 +49,20 @@ The git repository contains the guide document code, "nigeria_handbook.do" for c
    
    The rest of "project.do" is divided into sections: the directory creation section, `global 			dirCreate	0`,
 the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" by changing the 0 to 1 or turned "off" by turning the 1 to a 0. A section will only run when it is turned "on". By default all secions are "on".
-  
- ## Compiling the Guide in Microsoft Word
+ 
+5. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. You will need to create an account with the World Bank if you do not already have one. You will be asked to provide a reason for downloading the data.
+ 
+ The dataset file is called NGA_2012_GHSP-W2_v02_M_STATA. ***Extract the entire file NGA_2012_GHSP-W2_v02_M_STATA and copy or move it to*** `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw` - the folders in this path were created by the project.do.
+ 
+ ## Compiling the Guide in Microsoft Word:
  
 1.  Run the "project.do" file at the start of every session. All chapters of the guide will be generated in Microsoft Word documents after running the "project.do". 
 
 2. Save each chapter of the guide in Microsoft Word individually. You now have the cleaned data and the guide.
    
- ## For Mac OS
+ ## For Mac OS:
  
- ##  Setting Up a Dev Environment
+ ##  Setting Up a Dev Environment:
  
  The git repository contains the guide document code, "nigeria_handbook.do" for compiling the guide documents, a "project.do" to set the file path for the raw data from the World Bank, and land-conversion.dta which is a land unit conversion file. Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
 
@@ -79,11 +79,11 @@ the stata package installation section, `global 			pack 		0`, and the building t
    After the github has located repository select the `clone repository` button.
    
 
-4. Open the "project.do"
+3. Open the "project.do"
  
   Once the repository has been cloned to your local, locate in the "lsms-isa_data_handbook" file in the local "git" folder the "project.do" and open "project.do" in stata.
    
-5. Edit the "project.do"
+4. Edit the "project.do"
  
    The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset. We have to do a bit of global path editing on "project.do" to work for your unique local computer username. The edits are specific to your computer and will allow the "project.do" file to use and create the paths on and for your local computer.
    
@@ -102,11 +102,11 @@ the stata package installation section, `global 			pack 		0`, and the building t
    The rest of "project.do" is divided into sections: the directory creation section, `global 			dirCreate	0`,
 the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" by changing the 0 to 1 or turned "off" by turning the 1 to a 0. A section will only run when it is turned "on". By default all secions are "on".
 
-3. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. You will need to create an account with the World Bank if you do not already have one.
+5. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. You will need to create an account with the World Bank if you do not already have one. You will be asked to provide a reason for downloading the data.
  
  The dataset file is called NGA_2012_GHSP-W2_v02_M_STATA. ***Extract the entire file NGA_2012_GHSP-W2_v02_M_STATA and copy or move it to*** `\Users\"USERNAME"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw` - the folders in this path were created by the project.do.
  
-## Compiling the Guide in Microsoft Word
+## Compiling the Guide in Microsoft Word:
 
 1.  Run the "project.do" file at the start of every session. All chapters of the guide will be generated in Microsoft Word documents after running the "project.do".
 
