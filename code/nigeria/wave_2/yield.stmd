@@ -6,7 +6,7 @@ Total household maize yield (maize production in kilograms per hectare) is gener
 
 This chapter covers the procedures to produce variables on input and output per hectare as well as total input and output data, at the household level. Previous files we have thus far prepared are concerned with one type of input or output at the plot level. The purpose of this chapter is to produce a single file that contains all the input and output data at the household level. We will merge all of the preliminary datasets together and then we shall aggregate the data at the household level.
 
-# Merge Datasets
+# Merging Datasets
 
 Recall: our observations are identified at the crop level, the plot level, and the household level. When matching, all crops grown on the same plot should be matched to one another; all labor days used on the same plot should be matched to crops grown on that plot, all fertilizer applied to that plot should be matched to the crops grown on that plot and the labor used on that plot etc. The final dataset will be at the household level. To match data relating to the same household plot the two files must contain a household ID variable and a plot ID variable (**hhid** and **plotid**). We are able to identify the observations as belonging to the same household plot when the observations share a household ID and a plot ID. 
 
@@ -119,16 +119,9 @@ Now all the files have been merged. We have a lot of new variables, so we should
 quietly	drop 			_11a1 _11b _11c1 _11c2 _11d _a2
 ```
 
-# Creating plot level total farm and maize variables
+# Creating Plot Level Variables
 
 We now have everything in one place at the crop level, we want to make a set of variables that relate only to maize production, these variables will relate to maize labor, maize land, maize output, all such things that relate to maize. But first there are a few variables we must tidy up: the two labor variables, the fertilizer binary, the pesticide and herbicide binary, and the irrigation binary.
-
-Labor is divided into two different variables: planting labor and harvest labor. The labor applied to the plot to produce the crop output is the sum of harvest and planting labor, so we add together those two labors. 
-
-```{s}
-quietly	gen 			labordays = hrv_labor + pp_labor
-quietly	label var 		labordays "Total labor days used on plot"
-```
 
 Presently, our binary variables for fertilizer, herbicide, irrigation, and pesticide use 1 and 2 to represent yes and no, respectively. It is a convention in economics to represent a binary with a 0 and a 1. Recode the binary variables so that 0 instead of '2' represents a 'no' response. 
 
@@ -143,7 +136,8 @@ Maize is an important crop and we may want to consider maize inputs and maize ou
 
 ```{s}
 quietly	gen				mz_lnd = plotsize	if mz_hrv != .
-quietly	gen				mz_lab = labordays	if mz_hrv != .
+quietly	gen				mz_labhrv = hrv_labor	if mz_hrv != .
+quietly	gen				mz_labpp = pp_labor	if mz_hrv != .
 quietly	gen				mz_frt = fert_use	if mz_hrv != .
 quietly	gen				mz_pst = pest_any	if mz_hrv != .
 quietly	gen				mz_hrb = herb_any	if mz_hrv != .
@@ -152,7 +146,7 @@ quietly	gen				mz_irr = irr_any	if mz_hrv != .
 
 There are a lot of missing observations during the making of the maize observations. The missing observations are the non-maize observations. The maize variables will have non-missing observations when maize was grown and missing observations when maize was not grown.
 
-# Collapsing the data to the plot level
+# Collapsing to the Plot Level
 
 The data is currently at the crop level and we want the data to be at the household level. Between the crop level and the household level is the plot level. The crops are grown on a plot and the plot belongs to the household. We must first collapse the crop level data to the plot level, then we shall collapse the plot level data to the household level. The process of moving from a lower level of data aggregation to a higher level of aggregation is known as collapsing. After collapsing the data, all crops grown on the same plot will be aggregated into one entry. After the collapse, output will be a sum of the total value of all crops grown on that plot.
 
@@ -163,12 +157,26 @@ Binaries should be collapsed taking the maximum observation. Write the option `(
 The most important part of the `collapse' command is the level of aggregation of the collapse. At the end of the command we have a `by()' option. In the set of observations that have the same values for the variables in the by option calculate the collapse condition. For instance we could collapse using addition output `by(hhid plotid)', in doing so all observations that share the same **hhid** and **plotid** will be aggregated together.
 
 ```{s}
-	collapse (sum) mz_vl vl_hrv harv_kg plotsize labordays fert_use mz_hrv mz_lnd mz_lab mz_frt (max) pest_any herb_any irr_any mz_pst mz_hrb mz_irr, by(hhid plotid plot_id zone state lga sector ea)
+	collapse (sum) mz_vl vl_hrv harv_kg plotsize hrv_labor pp_labor fert_use mz_hrv mz_lnd mz_labhrv mz_labpp mz_frt (max) pest_any herb_any irr_any mz_pst mz_hrb mz_irr mz_damaged, by(hhid plotid plot_id zone state lga sector ea)
 ```
 
-Now that the data is at the plot level we should make the variables that are at the plot level such as crop yield (kg/ha).
+We want the maize variables to have a missing value whenever an observation did not grow maize. We will replace non-maize observations with missing using a local folder with all the maize variables because we have so many maize variables.
 
-# Construct maize yield (kg/ha).
+```{s}
+	loc	mz			mz_lnd mz_labhrv mz_labpp mz_frt mz_pst mz_hrb mz_irr
+	foreach v of varlist `mz'{
+	    replace		`v' = . if mz_damaged == . & mz_hrv == 0	
+	}	
+	replace			mz_hrv = . if mz_damaged == . & mz_hrv == 0		
+	drop 			mz_damaged
+```
+	
+Now that the data is at the plot level we should make the variables that are at the plot level such as maize yield (USD/ha).
+
+
+
+
+# Plot Maize Yield (kg/ha).
 
 ```{s}
 quietly	gen			mz_yld = mz_hrv / mz_lnd
@@ -238,6 +246,42 @@ How many observations were replaced in the previous stage? Was it the same numbe
 quietly	drop 			mz_yld_1_
 ```
 
+What has the imputation done to **mz_yld**?
+
+```{s}
+sum 		mz_yld, detail
+```
+
+The maximum **mz_yld** is 26690.39, this is still a little too high. Let's impute again.
+
+```{s}
+	replace 	mz_yld = . if mz_yld > `r(p50)' + (3*`r(sd)')
+
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed mz_yld
+
+quietly	sort			hhid plotid, stable 
+
+	quietly mi impute 		pmm mz_yld i.state, add(1) rseed(245780) noisily dots force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			mz_yld = mz_yld_1_ if mz_lnd != .
+
+quietly	drop 			mz_yld_1_
+```
+
+What has the second imputation done to **mz_yld**?
+
+```{s}
+sum 		mz_yld
+
+```
+The new maximum **mz_yld** is 10606.68. Half of what it was before. Let's move on for now. If we need to impute this variable again we will do so when we collapse everything to the household level.
+
 The maize yield variable is imputed meaning its different from what it was when we first labeled it. Label the imputed variable to track the imputation.
 
 ```{s}
@@ -250,7 +294,10 @@ quietly	generate 		mz_hrvimp = mz_yld * mz_lnd
 quietly	lab var 		mz_hrvimp "maize harvest quantity (kg), imputed"
 ```
 
-# Maize value (USD/ha)
+
+
+
+# Value of Maize Harvested (USD/ha)
 
 ```{s}
 quietly	gen 		mz_value = mz_vl / mz_lnd
@@ -280,21 +327,31 @@ quietly	sort			hhid plotid, stable
 	replace			mz_value = mz_value_1_ if mz_lnd != .
 	
 quietly	drop 			mz_value_1_
+
+sum mz_value
 ```
 
-# Maize Labor Days Per Hectare (days/ha)
+After imputation the new **mz_value** is 14547.45, that's a more reliable number.
+
+
+
+
+
+
+
+# Harvest Labor Days per Hectare, Maize (days/ha)
 
 Create the maize labor used per hectare variable.
 
 ```{s}
-quietly	gen 		labordays_ha_mz = labordays/plotsize
-quietly	label var 	labordays_ha_mz "maize labor use (days/ha)"
+quietly	gen 		labordayshrv_ha_mz = hrv_labor/plotsize
+quietly	label var 	labordayshrv_ha_mz "maize labor use harvest (days/ha)"
 ```
 Summarize the maize labor per hectare to obtain the standard deviation, all observations above three standard deviations from the mean will be replaced with missing values and imputed.
 ```{s}
-	sum 		labordays_ha_mz, detail
+	sum 		labordayshrv_ha_mz, detail
 
-	replace 	labordays_ha_mz = . if labordays_ha_mz > `r(p50)' + (3*`r(sd)')
+	replace 	labordayshrv_ha_mz = . if labordayshrv_ha_mz > `r(p50)' + (3*`r(sd)')
 ```
 
 Impute the missing observations.
@@ -304,34 +361,137 @@ quietly	mi set 			wide
 
 quietly	mi xtset		, clear 
 
-quietly	mi register 	imputed labordays_ha_mz
+quietly	mi register 	imputed labordayshrv_ha_mz
 
 quietly	sort			hhid plotid, stable 
 
-	quietly mi impute 		pmm labordays_ha_mz i.state, add(1) rseed(245780) noisily dots ///
+	quietly mi impute 		pmm labordayshrv_ha_mz i.state, add(1) rseed(245780) noisily dots ///
 						force knn(5) bootstrap
 
 	quietly mi unset
 
-	replace			labordays_ha_mz = labordays_ha_mz_1_
+	replace			labordayshrv_ha_mz = labordayshrv_ha_mz_1_
 	
-quietly	drop 			labordays_ha_mz_1_
+quietly	drop 			labordayshrv_ha_mz_1_
 ```
 
 Label the maize labor variable to keep track of that the variable has been imputed.
 
 ```{s}
-quietly		lab var			labordays_ha_mz	"maize labor use (days/ha), imputed"
+quietly		lab var			labordayshrv_ha_mz	"maize labor use harvest (days/ha), imputed"
 ```
+
+What has imputation done to **labordayshrv_ha_mz**?
+
+```{s}
+sum 	labordayshrv_ha_mz
+```
+
+The new maximum value of **labordayshrv_ha_mz** is 2830.492, that is a much more reliable figure.
 
 Infer total maize labor use with the per hectare labor use.
 
 ```{s}
-quietly	gen				mz_labimp = labordays_ha_mz * mz_lnd
-quietly	lab var			mz_labimp "maize labor (days), imputed"
+quietly	gen				mz_labhrvimp = labordayshrv_ha_mz * mz_lnd
+quietly	lab var			mz_labhrvimp "maize labor harvest (days), imputed"
 ```
 
-# Fertilizer Application Per Hectare, Used on Maize (kg/ha)
+
+
+
+
+# Planting Labor Days Per Hectare, Maize  (days/ha)
+
+Create the maize planting labor used per hectare variable.
+
+```{s}
+quietly	gen 		labordayspp_ha_mz = pp_labor/plotsize
+quietly	label var 	labordayspp_ha_mz "maize labor use planting (days/ha)"
+```
+Summarize the maize planting labor per hectare to obtain the standard deviation, all observations above three standard deviations from the mean will be replaced with missing values and imputed.
+```{s}
+	sum 		labordayspp_ha_mz, detail
+
+	replace 	labordayspp_ha_mz = . if labordayspp_ha_mz > `r(p50)' + (3*`r(sd)')
+```
+
+Impute the missing observations.
+
+```{s}
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed labordayspp_ha_mz
+
+quietly	sort			hhid plotid, stable 
+
+	quietly mi impute 		pmm labordayspp_ha_mz i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			labordayspp_ha_mz = labordayspp_ha_mz_1_
+	
+quietly	drop 			labordayspp_ha_mz_1_
+```
+
+What has imputation done to **labordayspp_ha_mz**?
+```{s}
+sum 			labordayspp_ha_mz
+```
+
+The new maximum value is 12170.17. This seems a bit too high so we will impute a second time. 
+
+```{s}
+	sum 		labordayspp_ha_mz, detail
+
+	replace 	labordayspp_ha_mz = . if labordayspp_ha_mz > `r(p50)' + (3*`r(sd)')
+```
+
+Impute the missing observations.
+
+```{s}
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed labordayspp_ha_mz
+
+quietly	sort			hhid plotid, stable 
+
+	quietly mi impute 		pmm labordayspp_ha_mz i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			labordayspp_ha_mz = labordayspp_ha_mz_1_
+	
+quietly	drop 			labordayspp_ha_mz_1_
+```
+
+What has imputation done to **labordayspp_ha_mz**?
+```{s}
+sum 			labordayspp_ha_mz
+```
+The new maximum is 5847. We will accept this new maximum value and move on.
+
+Label the maize labor planting variable to keep track of that the variable has been imputed.
+
+```{s}
+quietly		lab var			labordayspp_ha_mz	"maize labor use planting (days/ha), imputed"
+```
+
+Infer total maize labor planting use with the per hectare labor use.
+
+```{s}
+quietly	gen				mz_labppimp = labordayshrv_ha_mz * mz_lnd
+quietly	lab var			mz_labppimp "maize labor planting (days), imputed"
+```
+
+
+
+# Fertilizer Application Per Hectare, Maize (kg/ha)
 
 Create the fertilizer use variable. Fertilizer use is measured as kilograms of fertilizer applied per hectare.
 
@@ -372,6 +532,11 @@ Label the fertililzer variable to keep track of the imputation.
 ```{s}
 quietly	label		var	fert_use_ha_mz "fertilizer applied per hectare, maize (kg/ha) imputed"
 ```
+What does the imputation look like? 
+```{s}
+sum  				fert_use_ha_mz
+```
+The new maximum value of **fert_use_ha_mz** is 2494.501, this looks good!
 
 Infer the total fertilizer used from the per hectare measure.
 
@@ -379,6 +544,302 @@ Infer the total fertilizer used from the per hectare measure.
 quietly	gen				mz_frtimp = fert_use_ha_mz * mz_lnd
 quietly	lab var			mz_frtimp "fertilizer (kg), imputed"
 ```
+
+
+
+
+
+# The Value of the Harvest (USD/ha)
+
+Generate harvest value and give it a label. Harvest value is a per hectare measurement of the value of crop output per hectare of land.
+
+```{s}
+quietly	gen 		harv_value = vl_hrv/plotsize if mz_hrv != .
+quietly	label var 	harv_value "total value of crop harvest (USD/ha)"
+```
+
+Summarize **harv_value** to obtain the standard deviation, replace the values outside of three standard deviations as missing in preperation for the imputation. We will make a note of the observations that are three standard deviations above the mean with a binary variable **harv_vl_missimp**; we will use this variable to only replace the values we made missing with imputed observations.
+
+```{s}
+	 sum 		harv_value, detail
+```	 
+	 
+The maximum **harv_value** is 26152.57. This is a little too high so we will need to impute the large outliers.
+
+```{s}
+	gen 		harv_vl_missimp = 1 if harv_value > `r(p50)' + (3*`r(sd)') & harv_value != .
+	replace 	harv_value = . if harv_value > `r(p50)' + (3*`r(sd)')
+```
+Impute the missing variables.
+
+```{s}
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed harv_value
+
+quietly	sort			hhid plotid, stable 
+
+	quietly mi impute 		pmm harv_value i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+```
+Now using the variable **harv_vl_missimp** we can ensure that only the observations we made missing are replaced with imputations. 
+
+```{s}
+	replace			harv_value = harv_value_1_ if harv_vl_missimp == 1
+	
+quietly	drop 			harv_value_1_
+	
+```
+
+Label the imputed variable to keep track of the imputation.
+
+```{s}
+quietly	lab var			harv_value	"value of yield (2010USD/ha), imputed"
+```
+Calculate the total value of the harvest by multiplying the imputed value of crop per hectare with the land area.
+
+```{s}
+quietly	generate		vl_hrvimp = harv_value * plotsize 
+quietly	lab var			vl_hrvimp "value of harvest (2010USD), imputed"
+quietly lab var			vl_hrv "value of harvest (2010USD)"
+sum 					vl_hrvimp
+```
+The maximum of **vl_hrvimp** is now 3151.023. The maximum value of **harv_value** is now  6309.617.
+
+
+
+
+
+# Total Labor Days Harvest per Hectare (days/ha)
+
+We now generate and refine the variable measuring the labor days used per hectare of plotsize.
+
+```{s}
+quietly	gen 		labordayshrv_ha = hrv_labor/plotsize
+quietly	label var 	labordayshrv_ha "farm labor use (labordays/ha)"
+```
+
+We will have to impute the variable if the values in the extreme are too extreme, normally they are too high.
+
+```{s}
+	sum 		labordayshrv_ha, detail
+```
+The highest value is 94807.82, this appears to be too many labor days per hectare. We will impute the values that lie outside three standard deviations of the mean, and make a note of these observations we replace with missing.
+
+```{s}
+	gen 		labordayshrv_missimp = 1 if labordayshrv_ha > `r(p50)' + (3*`r(sd)') & labordayshrv_ha != .
+	replace 	labordayshrv_ha = . if labordayshrv_ha > `r(p50)' + (3*`r(sd)')
+```
+
+We replaced 89 observations with missing values.
+```{s}
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed labordayshrv_ha
+
+quietly	sort			hhid plotid, stable 
+
+	quietly mi impute 		pmm labordayshrv_ha i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			labordayshrv_ha = labordayshrv_ha_1_ if labordayshrv_missimp == 1
+```{s}
+
+We replaced 89 observations with imputations, the same number we replaced before with missing values.
+	
+```{s}	
+quietly	drop 			labordayshrv_ha_1_
+```
+
+Label the labordays variable to indicate it has undergone imputing and differentiate it from the first version of the variable we created.
+
+```{s}
+quietly	lab var			labordayshrv_ha	"farm labor use (days/ha), imputed"
+```
+What does the imputed **labordayshrv_ha** look like?
+
+```{s}
+sum 	labordayshrv_ha
+```
+The new maximum value of **labordayshrv_ha** is 2830.492. This is much better.
+
+Infer the total labor used on the plot by multiplying the imputed labor per hectare with the plotsize.
+
+```{s}
+quietly	gen				labordayshrvimp = labordayshrv_ha * plotsize
+quietly	lab var			labordayshrvimp "farm labor (days), imputed"
+```
+
+
+
+
+# Total Labor Days Planting per Hectare (days/ha)
+
+We now generate and refine the variable measuring the labor days used per hectare of plotsize.
+
+```{s}
+quietly	gen 		labordayspp_ha = pp_labor/plotsize
+quietly	label var 	labordayspp_ha "farm labor use planting (labordays/ha)"
+```
+
+We will have to impute the variable if the values in the extreme are too extreme, normally they are too high.
+
+```{s}
+	sum 		labordayspp_ha, detail
+```
+The highest value is  86311.53, this appears to be too many labor days per hectare. We will impute the values that lie outside three standard deviations of the mean. We also make a variable to note which observations we replaced with missing values.
+
+```{s}
+	gen 		labordayspp_missimp = 1 if labordayspp_ha > `r(p50)' + (3*`r(sd)') & labordayspp_ha != .
+	replace 	labordayspp_ha = . if labordayspp_ha > `r(p50)' + (3*`r(sd)')
+```
+We replaced 90 observations with missing values.
+
+```{s}
+
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed labordayspp_ha
+
+quietly	sort			hhid plotid, stable 
+
+	quietly mi impute 		pmm labordayspp_ha i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			labordayspp_ha = labordayspp_ha_1_ if labordayspp_missimp == 1
+	
+quietly	drop 			labordayspp_ha_1_
+drop labordayspp_missimp
+```
+We replaced 90 observations with imputations, this matches the number of observations we made missing.
+
+Label the labordays variable to indicate it has undergone imputing and differentiate it from the first version of the variable we created.
+
+```{s}
+quietly	lab var			labordayspp_ha	"farm labor use planting (days/ha), imputed"
+sum 				labordayspp_ha
+```
+The maximum **labordayspp_ha** is 12170. This is still very high. We should impute again.
+
+```{s}
+	sum 		labordayspp_ha, detail
+	gen 		labordayspp_missimp = 1 if labordayspp_ha > `r(p50)' + (3*`r(sd)') & labordayspp_ha != .
+	replace 	labordayspp_ha = . if labordayspp_ha > `r(p50)' + (3*`r(sd)')
+```
+We replaced 200 observations with missing values.
+
+```{s}
+
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed labordayspp_ha
+
+quietly	sort			hhid plotid, stable 
+
+	quietly mi impute 		pmm labordayspp_ha i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			labordayspp_ha = labordayspp_ha_1_ if labordayspp_missimp == 1
+	
+quietly	drop 			labordayspp_ha_1_
+drop labordayspp_missimp
+sum 			labordayspp_ha
+```
+
+The new maximum for **labordayspp_ha** is 5847.953. This is much better.
+
+Infer the total labor used on the plot by multiplying the imputed labor per hectare with the plotsize.
+
+```{s}
+quietly	gen				labordaysppimp = labordayspp_ha * plotsize
+quietly	lab var			labordaysppimp "farm labor planting (days), imputed"
+sum 					labordaysppimp
+```
+The maximum **labordaysppimp** is 5790.
+
+
+
+
+
+
+# Fertilizer Application per Hectare (kg/ha)
+
+Generate the variable measuring the amount of fertilizer applied to each hectare of each plot.
+```{s}
+quietly	gen 		fert_use_ha = fert_use/plotsize
+quietly	label var 	fert_use_ha "fertilizer applied per hectare (kg/ha)"
+```
+Take the summary of **fert_use_ha** to determine if it's values are too large.
+
+```{s}
+	 sum 		fert_use_ha, detail
+```
+The maximum is too high and a bit unreasonable. We will replace the outliers by imputation.
+
+```{s}
+	replace 	fert_use_ha = . if fert_use_ha > `r(p50)' + (3*`r(sd)')
+	
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed fert_use_ha
+
+quietly	sort			hhid plotid, stable 
+
+	quietly mi impute 		pmm fert_use_ha i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			fert_use_ha = fert_use_ha_1_
+	
+quietly	drop 			fert_use_ha_1_
+```
+
+What has the imputation done to the distribution of **fert_use_ha**?
+
+```{s}
+sum fert_use_ha
+```
+The new maximum value of **fert_use_ha** is 2215.674, that's much better than before.
+
+label the fertililzer use variable to indicate it has undergone imputing.
+
+```{s}
+quietly	lab var			fert_use_ha	"fertilizer applied per hectare (kg/ha), imputed"
+```
+
+Infer the total fertilizer used on the plot by multiplying the imputed rate at which fertilizer is applied by the plot area.
+
+```{s}
+quietly	gen fertimp = fert_use_ha*plotsize
+```
+
+
+
+
+	
+
+
+
+
 
 # Plot Total Crop Yield (kg/ha)
 
@@ -422,153 +883,108 @@ quietly	sort			hhid plotid, stable
 	
 quietly	drop 			kg_yld_1_
 ```
-	
-# The Value of the Harvest (USD/ha)
-
-Generate harvest value and give it a label. Harvest value is a per hectare measurement of the value of crop output per hectare of land.
+What has imputation changed?
 
 ```{s}
-quietly	gen 		harv_value = vl_hrv/plotsize if mz_hrv != .
-quietly	label var 	harv_value "total value of crop harvest (USD/ha)"
+sum kg_yld, detail
+```
+The yield is 116000, which is still too high. We should impute again.
+
+```{s}
+	replace 	kg_yld = . if kg_yld > `r(p50)' + (3*`r(sd)')
 ```
 
-Summarize **harv_value** to obtain the standard deviation, replace the values outside of three standard deviations as missing in preperation for the imputation.
+Take the steps to impute the values in **kg_yld** that we replaced with missing values.
 
 ```{s}
-	 sum 		harv_value, detail
 
-	replace 	harv_value = . if harv_value > `r(p50)' + (3*`r(sd)')
-```
-Impute the missing variables.
-
-```{s}
 quietly	mi set 			wide 
 
 quietly	mi xtset		, clear 
 
-quietly	mi register 	imputed harv_value
+quietly	mi register 	imputed kg_yld
 
 quietly	sort			hhid plotid, stable 
 
-	quietly mi impute 		pmm harv_value i.state, add(1) rseed(245780) noisily dots ///
+	quietly mi impute 		pmm kg_yld i.state, add(1) rseed(245780) noisily dots ///
 						force knn(5) bootstrap
 
 	quietly mi unset
 
-	replace			harv_value = harv_value_1_
+	replace			kg_yld = kg_yld_1_
 	
-quietly	drop 			harv_value_1_
-	
+quietly	drop 			kg_yld_1_
 ```
-
-Label the imputed variable to keep track of the imputation.
+How has the maximum value of **kg_yld** changed now?
 
 ```{s}
-quietly	lab var			harv_value	"value of yield (2010USD/ha), imputed"
+sum 				kg_yld, detail
 ```
-Calculate the total value of the harvest by multiplying the imputed value of crop per hectare with the land area.
+The maximum value is 35826.88. This is still too high. Let's impute again.
 
 ```{s}
-quietly	generate		vl_hrvimp = harv_value * plotsize 
-quietly	lab var			vl_hrvimp "value of harvest (2010USD), imputed"
+	replace 	kg_yld = . if kg_yld > `r(p50)' + (3*`r(sd)')
 ```
 
-# Total Labor Days per Hectare (days/ha)
-
-We now generate and refine the variable measuring the labor days used per hectare of plotsize.
+Take the steps to impute the values in **kg_yld** that we replaced with missing values.
 
 ```{s}
-quietly	gen 		labordays_ha = labordays/plotsize
-quietly	label var 	labordays_ha "farm labor use (labordays/ha)"
-```
 
-We will have to impute the variable if the values in the extreme are too extreme, normally they are too high.
-
-```{s}
-	sum 		labordays_ha, detail
-```
-The highest value is 94807.82, this appears to be too many labor days per hectare. We will impute the values that lie outside three standard deviations of the mean.
-
-```{s}
-	replace 	labordays_ha = . if labordays_ha > `r(p50)' + (3*`r(sd)')
-	
 quietly	mi set 			wide 
 
 quietly	mi xtset		, clear 
 
-quietly	mi register 	imputed labordays_ha
+quietly	mi register 	imputed kg_yld
 
 quietly	sort			hhid plotid, stable 
 
-	quietly mi impute 		pmm labordays_ha i.state, add(1) rseed(245780) noisily dots ///
+	quietly mi impute 		pmm kg_yld i.state, add(1) rseed(245780) noisily dots ///
 						force knn(5) bootstrap
 
 	quietly mi unset
 
-	replace			labordays_ha = labordays_ha_1_
+	replace			kg_yld = kg_yld_1_
 	
-quietly	drop 			labordays_ha_1_
+quietly	drop 			kg_yld_1_
 ```
-
-Label the labordays variable to indicate it has undergone imputing and differentiate it from the first version of the variable we created.
+How does the third imputation look?
 
 ```{s}
-quietly	lab var			labordays_ha	"farm labor use (days/ha), imputed"
+sum 				kg_yld, detail
 ```
 
-Infer the total labor used on the plot by multiplying the imputed labor per hectare with the plotsize.
+The new maximum is 17316.5. This is high so let's impute one last time.
+
 
 ```{s}
-quietly	gen				labordaysimp = labordays_ha * plotsize
-quietly	lab var			labordaysimp "farm labor (days), imputed"
+	replace 	kg_yld = . if kg_yld > `r(p50)' + (3*`r(sd)')
 ```
 
-# Fertilizer application per hectare (kg/ha)
-
-Generate the variable measuring the amount of fertilizer applied to each hectare of each plot.
-```{s}
-quietly	gen 		fert_use_ha = fert_use/plotsize
-quietly	label var 	fert_use_ha "fertilizer applied per hectare (kg/ha)"
-```
-Take the summary of **fert_use_ha** to determine if it's values are too large.
+Take the steps to impute the values in **kg_yld** that we replaced with missing values.
 
 ```{s}
-	 sum 		fert_use_ha, detail
-```
-The maximum is too high and a bit unreasonable. We will replace the outliers by imputation.
 
-```{s}
-	replace 	fert_use_ha = . if fert_use_ha > `r(p50)' + (3*`r(sd)')
-	
 quietly	mi set 			wide 
 
 quietly	mi xtset		, clear 
 
-quietly	mi register 	imputed fert_use_ha
+quietly	mi register 	imputed kg_yld
 
 quietly	sort			hhid plotid, stable 
 
-	quietly mi impute 		pmm fert_use_ha i.state, add(1) rseed(245780) noisily dots ///
+	quietly mi impute 		pmm kg_yld i.state, add(1) rseed(245780) noisily dots ///
 						force knn(5) bootstrap
 
 	quietly mi unset
 
-	replace			fert_use_ha = fert_use_ha_1_
+	replace			kg_yld = kg_yld_1_
 	
-quietly	drop 			fert_use_ha_1_
+quietly	drop 			kg_yld_1_
 ```
+How does the fourth imputation look? The new max is 11108.03, this is much better so let's move on.
 
-label the fertililzer use variable to indicate it has undergone imputing.
 
-```{s}
-quietly	lab var			fert_use_ha	"fertilizer applied per hectare (kg/ha), imputed"
-```
 
-Infer the total fertilizer used on the plot by multiplying the imputed rate at which fertilizer is applied by the plot area.
-
-```{s}
-quietly	gen fertimp = fert_use_ha*plotsize
-```
 
 # Collapsing to the Household Level
 
@@ -616,22 +1032,40 @@ Label the new variable.
 quietly	lab var			tf_yld	"value of yield (2010 USD/ha)"
 ``` 
 
-For total labor we will generate a new variable which is the sum of all plot labor by household.
+For total labor we will generate a new variable which is the sum of all plot harvest labor by household.
 
 ```{s}
-quietly	bysort 			hhid (plot_id) : egen lab_tot = sum(labordays_ha)
+quietly	bysort 			hhid (plot_id) : egen lab_hrv = sum(labordayshrv_ha)
 ``` 
 
-We now make the total labor per hectare. The total labor is the total labor divided by the total land. All observations from the same household have the same values for **lab_tot** and **tf_lnd**, thus **tf_lab** will also have the same values for all observations which have the same household id. 
+We now make the total labor per hectare. The total harvest labor per hectare is the total harvest labor divided by the total land area. All observations from the same household have the same values for **lab_tot** and **tf_lnd**, thus **tf_lab** will also have the same values for all observations which have the same household id. 
 
 ```{s}
-quietly	generate		tf_lab = lab_tot / tf_lnd
+quietly	generate		tf_labhrv = lab_hrv / tf_lnd
 ``` 
 
 Label the new variable.
 
 ```{s}
-quietly	lab var			tf_lab	"labor rate (days/ha)"
+quietly	lab var			tf_labhrv	"labor rate during harvest (days/ha)"
+```
+
+For total planting labor we will generate a new variable which is the sum of all plot level planting labor by household.
+
+```{s}
+quietly	bysort 			hhid (plot_id) : egen lab_pp = sum(labordayspp_ha)
+``` 
+
+We now make the total labor per hectare. The total labor is the total labor divided by the total land. All observations from the same household have the same values for **lab_tot** and **tf_lnd**, thus **tf_lab** will also have the same values for all observations which have the same household id. 
+
+```{s}
+quietly	generate		tf_labpp = lab_pp / tf_lnd
+``` 
+
+Label the new variable.
+
+```{s}
+quietly	lab var			tf_labpp	"labor rate during planting (days/ha)"
 ```
 
 For total fertilizer we will generate a new variable which is the sum of all plot fertilizer by household.
@@ -686,16 +1120,28 @@ The process can be repeated similarly for labor. For household maize yield, by h
 quietly	generate		cp_yld = cp_hrv / cp_lnd if mz_hrvimp != .
 ```
 	
-For household maize labor, by hhid take the sum of all labor which come from a unique maize plot_id.
+For household maize harvest labor, by hhid take the sum of all harvest labor which come from a unique maize plot_id.
 
 ```{s}
-quietly	bysort 			hhid (plot_id) : egen lab_mz = sum(mz_labimp)	if mz_hrvimp != .
+quietly	bysort 			hhid (plot_id) : egen labhrv_mz = sum(mz_labhrvimp)	if mz_hrvimp != .
 ```
 
-Again, the process can be repeated similarly for laborFor the household rate at which labor was applied to maize fields, by hhid divide the maize labor by the maize land from a unique maize plot_id.
+The process can be repeated similarly for labor. For the household rate at which labor was applied to maize fields, by hhid divide the maize labor by the maize land from a unique maize plot_id.
 
 ```{s}
-quietly	generate		cp_lab = lab_mz / cp_lnd
+quietly	generate		cp_labhrv = labhrv_mz / cp_lnd
+```
+
+For household maize planting labor, by hhid take the sum of all planting labor which come from a unique maize plot_id.
+
+```{s}
+quietly	bysort 			hhid (plot_id) : egen labpp_mz = sum(mz_labppimp)	if mz_hrvimp != .
+```
+
+The process can be repeated similarly for labor. For the household rate at which labor was applied to maize fields, by hhid divide the maize labor by the maize land from a unique maize plot_id.
+
+```{s}
+quietly	generate		cp_labpp = labpp_mz / cp_lnd
 ```
 
 For the household rate at which fertilizer was applied to maize fields, by hhid divide the maize fertilizer by the maize land from a unique maize plot_id.
@@ -724,7 +1170,8 @@ All at once we're going to label the new variables.
 quietly	lab var			tf_lnd	"Total farmed area (ha)"
 quietly	lab var			tf_hrv	"Total value of harvest (2010 USD)"
 quietly	lab var			tf_yld	"value of yield (2010 USD/ha)"
-quietly	lab var			tf_lab	"labor rate (days/ha)"
+quietly	lab var			tf_labhrv	"labor rate harvest (days/ha)"
+quietly	lab var			tf_labpp	"labor rate planting (days/ha)"
 quietly	lab var			tf_frt	"fertilizer rate (kg/ha)"
 quietly	lab var			tf_pst	"Any plot has pesticide"
 quietly	lab var			tf_hrb	"Any plot has herbicide"
@@ -732,7 +1179,8 @@ quietly	lab var			tf_irr	"Any plot has irrigation"
 quietly	lab var			cp_lnd	"Total maize area (ha)"
 quietly	lab var			cp_hrv	"Total quantity of maize harvest (kg)"
 quietly	lab var			cp_yld	"Maize yield (kg/ha)"
-quietly	lab var			cp_lab	"labor rate for maize (days/ha)"
+quietly	lab var			cp_labhrv	"labor rate for maize harvest (days/ha)"
+quietly	lab var			cp_labpp	"labor rate for maize planting (days/ha)"
 quietly	lab var			cp_frt	"fertilizer rate for maize (kg/ha)"
 quietly	lab var			cp_pst	"Any maize plot has pesticide"
 quietly	lab var			cp_hrb	"Any maize plot has herbicide"
@@ -745,8 +1193,197 @@ Summarize all the variables we have at this point so we can determine that the o
 	sum				tf_* cp_*
 ```
 
-Save the file.
+# Cleaning Harvest Labor Variables
+
+After the collapse the mean and maximum values of **tf_labhrv** became extremely high. Let's take a closer look at the variable to see what is going on.
 
 ```{s}
-	save "$root/wave_2/refined/secta3_harvestw2.dta", replace	
+	sum				tf_labhrv, detail
 ```
+
+The top one percent of values of **tf_labhrv** are driving the high means. So let's remove the outliers with an imputation. For the sake of brevity we will provide the imputation code without much explanation, the steps for imputation are almost exactly the same as all the imputations we have already done. The only difference is **tf_labhrv** is the variable we are imputing.
+
+```{s}
+	replace 	tf_labhrv = . if tf_labhrv > `r(p50)' + (3*`r(sd)')
+```
+
+Take the steps to impute the values in **tf_labhrv** that we replaced with missing values.
+
+```{s}
+
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed tf_labhrv
+
+quietly	sort			hhid, stable 
+
+	quietly mi impute 		pmm tf_labhrv i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			tf_labhrv = tf_labhrv_1_
+	
+quietly	drop 			tf_labhrv_1_
+```
+How has the maximum value of **tf_labhrv** changed now?
+
+```{s}
+sum 				tf_labhrv, detail
+```
+The maximum value is still too high. The standard deviation we used to replace the first few observations of **tf_labhrv** was very large because the outliers were so large, but we still did not remove enough outliers. Let's impute again.
+
+```{s}
+	replace 	tf_labhrv = . if tf_labhrv > `r(p50)' + (3*`r(sd)')
+```
+
+Take the steps to impute the values in **tf_labhrv** that we replaced with missing values.
+
+```{s}
+
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed tf_labhrv
+
+quietly	sort			hhid, stable 
+
+	quietly mi impute 		pmm tf_labhrv i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			tf_labhrv = tf_labhrv_1_
+	
+quietly	drop 			tf_labhrv_1_
+```
+How has the maximum value of **tf_labhrv** changed now?
+
+```{s}
+sum 				tf_labhrv, detail
+```
+The maximum value is 21951.26 labor hours per hectare. This is stil too high to be realistic. Let's impute again.
+
+```{s}
+	replace 	tf_labhrv = . if tf_labhrv > `r(p50)' + (3*`r(sd)')
+```
+
+Take the steps to impute the values in **tf_labhrv** that we replaced with missing values.
+
+```{s}
+
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed tf_labhrv
+
+quietly	sort			hhid, stable 
+
+	quietly mi impute 		pmm tf_labhrv i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			tf_labhrv = tf_labhrv_1_
+	
+quietly	drop 			tf_labhrv_1_
+```
+How has the maximum value of **tf_labhrv** changed now?
+
+```{s}
+sum 				tf_labhrv, detail
+```
+About 2000 labor days per hectare would be high but not too unrealistic if there are only a few observations at the top with that number. However, the max is 10421.5. We will impute again but this time we will replace any observations that are larger than 2000.
+
+```{s}
+	replace 	tf_labhrv = . if tf_labhrv > 2000
+```
+
+Take the steps to impute the values in **tf_labhrv** that we replaced with missing values.
+
+```{s}
+
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed tf_labhrv
+
+quietly	sort			hhid, stable 
+
+	quietly mi impute 		pmm tf_labhrv i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			tf_labhrv = tf_labhrv_1_
+	
+quietly	drop 			tf_labhrv_1_
+```
+How has the maximum value of **tf_labhrv** changed now?
+
+```{s}
+sum 				tf_labhrv, detail
+```
+**tf_labhrv** is now much more realistic!
+
+# Cleaning Planting Labor Variables
+
+After the collapse the mean and maximum values of the planting labor variable **tf_labpp** became extremely high. Let's take a closer look at the variable to see what is going on.
+
+```{s}
+	sum				tf_labpp, detail
+```
+
+The top 10 percent of values of **tf_labpp** are driving the high means. So let's remove the outliers with an imputation. We will replac any values that are above 2000 labor days per hectare. For the sake of brevity we will provide the imputation code without much explanation, the steps for imputation are almost exactly the same as all the imputations we have already done. The only difference is **tf_labpp** is the variable we are imputing.
+
+```{s}
+	replace 	tf_labpp = . if tf_labpp > 2000
+```
+
+Take the steps to impute the values in **tf_labpp** that we replaced with missing values.
+
+```{s}
+
+quietly	mi set 			wide 
+
+quietly	mi xtset		, clear 
+
+quietly	mi register 	imputed tf_labpp
+
+quietly	sort			hhid, stable 
+
+	quietly mi impute 		pmm tf_labpp i.state, add(1) rseed(245780) noisily dots ///
+						force knn(5) bootstrap
+
+	quietly mi unset
+
+	replace			tf_labpp = tf_labpp_1_
+	
+quietly	drop 			tf_labpp_1_
+```
+How has the maximum value of **tf_labpp** changed now?
+
+```{s}
+sum 				tf_labpp, detail
+```
+**tf_labpp** is now much more realistic!
+
+That concludes the cleaning we will be doing on this data set. The dataset is now a complete dataset at the household level.
+
+
+Save the file.
+
+
+
+```{s}
+	save "$root/wave_2/refined/fullproductiondataset.dta", replace	
+```
+
+# Conclusions
+
+We have made a data set of household level agricultural production data from the Nigeria General Household Survey, Panel 2012-2013, Wave 2, the Living Standards Measurement Study - Integrated Surveys on Agriculture. The observations you decide to impute depends on what you expect to be reliable data for specific variables in specific contexts. For instance if a household with one hectares is recorded to have harvested 10,000 kilograms of maize we can assume that the data is unrealistic; however, if a household with 20 hectares harvested 10,000 kilograms of maize we can say that is possible. During the data cleaning phase the boundaries of what is reliable data are open to discussion.

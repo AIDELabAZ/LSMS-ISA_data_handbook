@@ -147,6 +147,7 @@ Now we can generate a variable measuring the weight of the crop harvest in kilog
 
 ```{s}
 	quietly generate			harv_kg = sa3q6a1*conversion
+	label var 					harv_kg "Quantity of harvest (kg)"
 ```
 	
 Maize is the main crop we are interested in measuring. Several types of maize varieties were grown and we want to make it easy to work with all of them at once. So we are recoding them all as one type of maize. Sort **cropcode** and then look in the data browser to find the codes for the different types of maize. All types of maize are have codes between 1080 and 1084 and generic maize is 1080. Replace all maize with 1080.
@@ -155,11 +156,12 @@ Maize is the main crop we are interested in measuring. Several types of maize va
 	quietly replace			cropcode = 1080 if cropcode > 1079 & cropcode < 1084
 ```
 
-Make a maize harvest variable called **mz_hrv** for all the maize crop weights. All non-maize observations will be missing in the variable **mz_hrv**.
+Make a maize harvest variable called **mz_hrv** for all the maize crop weights. All non-maize observations will be missing in the variable **mz_hrv**. Also make a variable for damaged maize observations. An observation was damaged if the farmer grew maize but they did not harvest any amount of maize.
 
 ```{s}
 	quietly gen 			mz_hrv = harv_kg 	if 	cropcode == 1080
 	quietly lab var			mz_hrv "Quantity of maize harvested (kg)"
+	quietly gen				mz_damaged = 1		if  cropcode == 1080 & mz_hrv == 0
 ```
 
 # Imputing Far Outliers
@@ -339,7 +341,7 @@ We also want to make an id variable to identify the plot by the household ID and
 Keep all the variables we need and drop the extra variables we will not use later.
 
 ```{s}
-	keep zone state lga sector ea hhid plotid plot_id cropplot_id mz_vl harv_kg vl_hrv mz_hrv
+	keep zone state lga sector ea hhid plotid plot_id cropplot_id mz_vl harv_kg vl_hrv mz_hrv mz_damaged
 ```
 
 Save the file in our clean data folder.
