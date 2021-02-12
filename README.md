@@ -13,10 +13,10 @@ The guide combines the code, the explanations of the code, and the output in a s
 
 ##  Getting Started: Setting Up A Dev Environment  
 
-The git repository contains the guide document code, "nigeria_handbook.do" for compiling the guide documents, a "project.do" to set the file path for the raw data from the World Bank, and land-conversion.dta which is a land unit conversion file. Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
+Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
 
 ### Steps:
-1. We use pandoc to compile the guide word document. Pandoc can be downloaded from https://pandoc.org/installing.html. Install pandoc with this path when prompted in the pandoc installation guide where to save pandoc: "C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe". If pandoc was already installed or installed with another path then copy your local path for `pandoc.exe` and continue following this guide, when you reach step 5 you will be directed to paste that path into a do file. 
+1. We use pandoc to compile the guide word document. Pandoc can be downloaded from https://pandoc.org/installing.html. Install pandoc with this path when prompted in the pandoc installation guide where to save pandoc: "C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe". If pandoc was already installed or installed with another path then copy your local path for `pandoc.exe` and continue following this guide, when you reach step 4 you will be directed to paste that path into a do file. 
 
 2. Download a local copy of the code (clone the repository)
    
@@ -25,17 +25,17 @@ The git repository contains the guide document code, "nigeria_handbook.do" for c
    ```sh 
   https://github.com/jdavidm/lsms-isa_data_handbook or jdavidm/lsms-isa_data_handbook
    ```
-   After the github has located repository select the `clone repository` button.
+   After the github has located the repository select the `clone repository` button.
    
 3. Open the "project.do"
  
-  Once the repository has been cloned to your local, locate in the "lsms-isa_data_handbook" file in the local "git" folder the "project.do" and open "project.do" in stata.
+  Once the repository has been cloned to your local, locate the "lsms-isa_data_handbook" file in the local "git" folder and open "project.do" in stata.
    
 4. Edit the "project.do"
  
-   The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset. We have to do a bit of global path editing on "project.do" to work for your unique local computer username. The edits are specific to your computer and will allow the "project.do" file to use and create the paths on and for your local computer.
+   The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset and the "project.do" runs the code compile the guide. We have to do a bit of global path editing on "project.do" to work for your unique local computer username. The edits are specific to your computer and will allow the "project.do" file to use and create the paths on and for your local computer.
    
-  On line 30, 31, and 34 replace "USERNAME" with your unique local computer username.
+  In the do file editor open project.do. On the project.do on line 30, 31, and 34 replace "USERNAME" with your unique local computer username.
    
    ```
        if `"`c(username)'"' == "USERNAME" {	
@@ -56,7 +56,7 @@ the stata package installation section, `global 			pack 		0`, and the building t
  
  ## Compiling the Guide in Microsoft Word:
  
-1.  Run the "project.do" file at the start of every session. All chapters of the guide will be generated in Microsoft Word documents after running the "project.do". 
+1.  Run the "project.do" file to generate all chapters of the guide in Microsoft Word documents. 
 
 2. Save each chapter of the guide in Microsoft Word individually. You now have the cleaned data and the guide.
    
@@ -64,10 +64,10 @@ the stata package installation section, `global 			pack 		0`, and the building t
  
  ##  Setting Up a Dev Environment:
  
- The git repository contains the guide document code, "nigeria_handbook.do" for compiling the guide documents, a "project.do" to set the file path for the raw data from the World Bank, and land-conversion.dta which is a land unit conversion file. Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
+Before we compile the documents we must clone the git repository on our local computer and set up the file structure that will contain the raw data.
 
 ### Steps:
-1. We use pandoc to compile the guide word document. Pandoc can be downloaded from https://pandoc.org/installing.html. Install pandoc with this path when prompted in the pandoc installation guide where to save pandoc: /usr/local/bin/pandoc. If pandoc was already installed or installed with another path then copy your local path for `pandoc.exe` and continue following this guide, when you reach step 5 you will be directed to paste that path into a do file. 
+1. We use pandoc to compile the guide word document. Pandoc can be downloaded from https://pandoc.org/installing.html. Install pandoc with this path when prompted in the pandoc installation guide where to save pandoc: /usr/local/bin/pandoc. If pandoc was already installed or installed with another path then copy your local path for `pandoc.exe` and continue following this guide, when you reach step 4 you will be directed to paste that path into a do file. 
 
 2. Download a local copy of the code (clone the repository)
    
@@ -85,10 +85,10 @@ the stata package installation section, `global 			pack 		0`, and the building t
    
 4. Edit the "project.do"
  
-   The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset. We have to do a bit of global path editing on "project.do" to work for your unique local computer username. The edits are specific to your computer and will allow the "project.do" file to use and create the paths on and for your local computer.
+     The "project.do" creates a local file directory to store the raw datasets and the cleaned dataset and the "project.do" runs the code compile the guide. We have to do a bit of global path editing on "project.do" to work for your unique local computer username. The edits are specific to your computer and will allow the "project.do" file to use and create the paths on and for your local computer.
    
-  On line 30, 31, and 34 replace "USERNAME" with your unique local computer username.
-   
+  In the do file editor open project.do. On the project.do on line 30, 31, and 34 replace "USERNAME" with your unique local computer username.
+  
    ```
        if `"`c(username)'"' == "USERNAME" {	
         global 		project  	"/Users/USERNAME/git/lsms-isa_data_handbook"	
@@ -108,7 +108,7 @@ the stata package installation section, `global 			pack 		0`, and the building t
  
 ## Compiling the Guide in Microsoft Word:
 
-1.  Run the "project.do" file at the start of every session. All chapters of the guide will be generated in Microsoft Word documents after running the "project.do".
+1.  Run the "project.do" file to generate all chapters of the guide in Microsoft Word documents.
 
 2. Save each chapter of the guide in Microsoft Word individually. You now have the cleaned data and the guide.
    
