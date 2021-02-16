@@ -91,10 +91,9 @@ if $dirCreate == 1 {
 
 * install markstat and whereis packages if global is set to 1
 if $pack == 1 {
-
+		
 	* install -customsave package
-		net install StataConfig, ///
-		from(https://raw.githubusercontent.com/etjernst/Materials/master/stata/) replace
+		net install StataConfig, from(https://raw.githubusercontent.com/etjernst/Materials/master/stata/) replace
 	
 	* install -markstat- package
 		ssc install markstat, replace
