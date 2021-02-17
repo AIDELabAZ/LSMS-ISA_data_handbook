@@ -20,11 +20,17 @@ Before we compile the documents we must clone the git repository on our local co
 
 2. Download a local copy of the code (clone the repository)
    
-  Open Github desktop. From the `file` menu in the uppermost tool bar select `clone repository...`. In the `clone repository` menu select the `URL` tab and paste and this url or this username/repository_name in the box:
+  Open Github desktop. From the `file` menu in the uppermost tool bar select `clone repository...`. In the `clone repository` menu select the `URL` tab and and in the first box paste the following URL:
   
    ```sh 
-  https://github.com/jdavidm/lsms-isa_data_handbook or jdavidm/lsms-isa_data_handbook
+  https://github.com/jdavidm/lsms-isa_data_handbook 
    ```
+  Or alternatively paste the following username/repository_name:
+   
+   ```sh 
+   jdavidm/lsms-isa_data_handbook
+   ```
+ 
    After the github has located the repository select the `clone repository` button.
    
   Once the repository has been cloned to your local, locate the "lsms-isa_data_handbook" file in the local "git" folder and open the ***"project.do"*** in stata.
@@ -46,11 +52,15 @@ Before we compile the documents we must clone the git repository on our local co
    **If pandoc.exe was installed with a different path then now is the time to replace "C:/Users/USERNAME/AppData/Local/Pandoc/pandoc.exe" on line 34 with pandoc.exe's path in your local computer.**
    
    The rest of "project.do" is divided into sections: the directory creation section, `global 			dirCreate	0`,
-the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" by changing the 0 to 1 or turned "off" by turning the 1 to a 0. A section will only run when it is turned "on". By default all secions are "on".
+the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" by changing the 0 to 1 or turned "off" by turning the 1 to a 0. A section will only run when it is turned "on". By default `dirCreate` and `pack` secions are "on"; the `document` section is off, only turn it on once you have completed step four.
  
 4. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. You will need to create an account with the World Bank if you do not already have one. You will be asked to provide a reason for downloading the data.
  
  The dataset file is called NGA_2012_GHSP-W2_v02_M_STATA. ***Extract the entire file NGA_2012_GHSP-W2_v02_M_STATA and copy or move it to*** `C:\Users\"username"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw` - the folders in this path were created by the project.do.
+
+ 5. Generating the handbook.
+
+Open the "project.do" and in the `setup` section turn on the `document` section.
  
  ## Compiling the Guide in Microsoft Word:
  
@@ -69,11 +79,17 @@ Before we compile the documents we must clone the git repository on our local co
 
 2. Download a local copy of the code (clone the repository)
    
-  Open Github desktop. From the `file` menu in the uppermost tool bar select `clone repository...`. In the `clone repository` menu select the `URL` tab and paste and this url or this username/repository_name in the box:
+  Open Github desktop. From the `file` menu in the uppermost tool bar select `clone repository...`. In the `clone repository` menu select the `URL` tab and and in the first box paste the following URL:
   
    ```sh 
-  https://github.com/jdavidm/lsms-isa_data_handbook or jdavidm/lsms-isa_data_handbook
+  https://github.com/jdavidm/lsms-isa_data_handbook 
    ```
+  Or alternatively paste the following username/repository_name:
+   
+   ```sh 
+   jdavidm/lsms-isa_data_handbook
+   ```
+ 
    After the github has located the repository select the `clone repository` button.
    
   Once the repository has been cloned to your local, locate the "lsms-isa_data_handbook" file in the local "git" folder and open the ***"project.do"*** in stata.
@@ -95,11 +111,15 @@ Before we compile the documents we must clone the git repository on our local co
    **If pandoc was installed with a different path then now is the time to replace /usr/local/bin/pandoc on line 34 with pandoc's path in your local computer.**
    
    The rest of "project.do" is divided into sections: the directory creation section, `global 			dirCreate	0`,
-the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" by changing the 0 to 1 or turned "off" by turning the 1 to a 0. A section will only run when it is turned "on". By default all secions are "on".
+the stata package installation section, `global 			pack 		0`, and the building the handbook section, `global			document	0`. Each of these sections can be turned "on" by changing the 0 to 1 or turned "off" by turning the 1 to a 0. A section will only run when it is turned "on". By default `dirCreate` and `pack` secions are "on"; the `document` section is off, only turn it on once you have completed step four.
 
 4. Download the General Household Survey, Panel 2012-2013, Wave 2 for Nigeria, 2012-2013 at https://microdata.worldbank.org/index.php/catalog/1952/get-microdata. You will need to create an account with the World Bank if you do not already have one. You will be asked to provide a reason for downloading the data.
  
  The dataset file is called NGA_2012_GHSP-W2_v02_M_STATA. ***Extract the entire file NGA_2012_GHSP-W2_v02_M_STATA and copy or move it to*** `\Users\"USERNAME"\git\lsms-isa_data_handbook\data\nigeria\wave_2\raw` - the folders in this path were created by the project.do.
+ 
+ 5. Generating the handbook.
+
+Open the "project.do" and in the `setup` section turn on the `document` section.
  
 ## Compiling the Guide in Microsoft Word:
 
