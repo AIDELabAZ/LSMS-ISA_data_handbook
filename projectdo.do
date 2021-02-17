@@ -6,7 +6,7 @@
 * does
 	* establishes an identical workspace between users
 	* sets globals that define absolute paths
-	* serves as the starting point to find any do-file, dataset or output
+	* serves as the starting point to find any do-file or dataset
 	* loads any user written packages needed for analysis
 	* compiles handbook
 
@@ -14,12 +14,6 @@
 	* access to all data and code
 	* assumes data is downloaded into folders once directory is created
 
-* TO DO:
-	* add all do-files
-
-
-
-	
 * **********************************************************************
 * 0 (a) - Create user specific paths
 * **********************************************************************
@@ -56,7 +50,7 @@
 	global 			pack 		1
 	
 * set $document to 0 to skip building handbook
-	global			document	1
+	global			document	0
 	
 * specify Stata version in use
     global stataVersion 16.1    // set Stata version
