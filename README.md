@@ -7,6 +7,8 @@ The basic steps we take here are the same steps you could take to generate yield
 
 The guide combines the code, the explanations of the code, and the output in a single document. The user generates the guide by running a stata do file that runs the code with the data and compiles the results into a single document. To compile the guide please follow the steps below.
 
+This work made possible through funding from the World Bank and from the Berkeley Initiative for Transparency in the Social Sciences (BITSS), managed by the Center for Effective Global Action (CEGA). 
+
 ***Instructions for Mac OS users are below the instructions for Microsoft Windows***
 
 ## For Microsoft Windows:
