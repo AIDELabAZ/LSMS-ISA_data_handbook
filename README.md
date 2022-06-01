@@ -11,6 +11,8 @@ This work made possible through funding from the World Bank and from the Berkele
 
 ***Instructions for Mac OS users are below the instructions for Microsoft Windows***
 
+Last update: Summer 2021.
+
 ## For Microsoft Windows:
 
 ##  Getting Started: Setting Up A Dev Environment  
